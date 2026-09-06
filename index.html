@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Samuel Adedeji — Brand & Visual Identity Designer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.cdnfonts.com/css/redaction" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="shell">
+
+  <div class="topbar">
+    <div class="email-group">
+      <span>samuel.s.adedeji@gmail.com</span>
+      <button class="copy-btn" onclick="copyEmail(this)">Copy</button>
+    </div>
+    <a class="enquiry-link" href="enquiry.html">Work Enquiry</a>
+  </div>
+
+  <div class="layout">
+
+    <aside class="profile">
+      <div class="avatar"><img src="" alt="" id="avatarImg" style="display:none;"><span id="avatarPlaceholder">Photo</span></div>
+      <h1>Samuel Adedeji</h1>
+      <p class="role">Brand &amp; Visual Identity Designer</p>
+
+      <p class="bio-quote">I've developed a deep appreciation for the role culture plays in shaping aesthetics and functionality.</p>
+
+      <p class="bio-body">My name is Samuel "Utidex" Adedeji, a freelance designer with over five years of experience in brand identity, strategy, visual design, and print media. I create design solutions that balance visual appeal with functional impact across diverse projects.</p>
+
+      <p class="bio-body">I'm deeply inspired by how culture shapes design, and I believe the most effective work is human centered, purposeful, and rooted in empathy and context. I'm motivated to contribute in environments that value creative problem solving, growth, and meaningful outcomes. Based in Lagos, Nigeria, I work primarily remotely with occasional hybrid collaboration.</p>
+
+      <p class="bio-body">Outside design, I enjoy sci-fi films, good music, exploring AI automation, and on a lighter note, fried plantain with chocolate.</p>
+
+      <div class="social-row">
+        <a href="#" aria-label="Instagram">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="0.6" fill="currentColor" stroke="none"/></svg>
+        </a>
+        <a href="#" aria-label="LinkedIn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="3"/><line x1="7.5" y1="10" x2="7.5" y2="17"/><circle cx="7.5" cy="6.8" r="0.9" fill="currentColor" stroke="none"/><path d="M11.5 17v-4.2c0-1.6 1-2.6 2.4-2.6 1.3 0 2.1.9 2.1 2.6V17"/></svg>
+        </a>
+        <a href="#" aria-label="Behance">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7h5.2a2.4 2.4 0 0 1 0 4.8H3z"/><path d="M3 11.8h5.6a2.6 2.6 0 0 1 0 5.2H3z"/><path d="M14 13.2c0-2 1.4-3.4 3.3-3.4 2 0 3.2 1.4 3.2 3.6v.4h-5.3c.1 1.3 1 2.1 2.2 2.1.9 0 1.5-.3 1.9-.9l1.1.9c-.7 1-1.8 1.6-3.1 1.6-2 0-3.3-1.4-3.3-3.6z"/><line x1="15.3" y1="7.8" x2="19.3" y2="7.8"/></svg>
+        </a>
+      </div>
+    </aside>
+
+    <div class="content">
+
+      <div class="section hero-section">
+        <h2 class="hero-title">Design What's Next.</h2>
+        <p class="hero-sub">Creating meaningful experiences, intelligent systems and growth opportunities for people and brands.</p>
+        <button class="cta-btn" onclick="document.getElementById('work').scrollIntoView({behavior:'smooth'})">
+          Recent Work →
+        </button>
+      </div>
+
+      <div class="logos-row">
+        <div class="logo-box"></div>
+        <div class="logo-box"></div>
+        <div class="logo-box"></div>
+        <div class="logo-box"></div>
+        <div class="logo-box"></div>
+      </div>
+
+      <div class="section work-section" id="work">
+        <h2>Recent Works</h2>
+        <div class="work-grid" id="workGrid"></div>
+      </div>
+
+      <div class="section contact-section">
+        <h2>Tell me about your next project.</h2>
+        <div class="contact-actions">
+          <a class="cta-btn" href="mailto:samuel.s.adedeji@gmail.com">Email Me</a>
+          <a class="btn-secondary" href="https://wa.me/2348065925091" target="_blank" rel="noopener">WhatsApp</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>© 2026 Samuel Adedeji. All rights reserved.</span>
+  </div>
+
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox">
+  <button class="lb-close" onclick="closeLightbox()">&times;</button>
+  <div class="lightbox-inner">
+    <div class="lightbox-stage" id="lbStage"></div>
+    <div class="lightbox-title" id="lbTitle"></div>
+    <div class="lightbox-desc" id="lbDesc"></div>
+    <div class="lightbox-counter" id="lbCounter"></div>
+    <div class="lightbox-controls">
+      <button class="lb-btn" onclick="prevImage()">&#8592;</button>
+      <button class="lb-btn" onclick="nextImage()">&#8594;</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  /*
+    PROJECTS DATA
+    -------------
+    Each entry is one brand/client. "brand" is the heading shown under the
+    cover thumbnail so work never gets mixed up between clients.
+    "description" is a short placeholder line — replace with real project
+    notes whenever you're ready.
+    "images" holds every file for that brand — include the cover as the
+    first item. Add as many as you like; the lightbox counter and arrows
+    adjust automatically. Example once you have real files:
+      images: ["images/brandqor/1.jpg", "images/brandqor/2.jpg"]
+  */
+  const projects = [
+    { brand: "Brandqor",  description: "Add project description here.", images: ["", "", "", ""] },
+    { brand: "Client Two", description: "Add project description here.", images: ["", "", ""] },
+    { brand: "Client Three", description: "Add project description here.", images: ["", "", "", "", ""] },
+    { brand: "Client Four", description: "Add project description here.", images: ["", ""] },
+    { brand: "Client Five", description: "Add project description here.", images: ["", "", "", ""] },
+    { brand: "Client Six", description: "Add project description here.", images: ["", "", ""] },
+  ];
+
+  const grid = document.getElementById('workGrid');
+  projects.forEach((project, index) => {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'work-card';
+    wrapper.onclick = () => openLightbox(index);
+
+    const tile = document.createElement('div');
+    tile.className = 'work-item';
+    const cover = project.images[0];
+    tile.innerHTML = cover
+      ? `<img src="${cover}" alt="${project.brand}">`
+      : `<span>Add image</span>`;
+    if (project.images.length > 1) {
+      const badge = document.createElement('span');
+      badge.className = 'count-badge';
+      badge.textContent = project.images.length;
+      tile.appendChild(badge);
+    }
+
+    const caption = document.createElement('div');
+    caption.className = 'work-caption';
+    caption.innerHTML = `<p class="brand">${project.brand}</p><p class="desc">${project.description}</p>`;
+
+    wrapper.appendChild(tile);
+    wrapper.appendChild(caption);
+    grid.appendChild(wrapper);
+  });
+
+  let currentProject = 0;
+  let currentImage = 0;
+
+  function openLightbox(projectIndex) {
+    currentProject = projectIndex;
+    currentImage = 0;
+    renderLightbox();
+    document.getElementById('lightbox').classList.add('active');
+  }
+  function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('active');
+  }
+  function renderLightbox() {
+    const project = projects[currentProject];
+    const stage = document.getElementById('lbStage');
+    const src = project.images[currentImage];
+    stage.innerHTML = src ? `<img src="${src}" alt="${project.brand}">` : `Add image ${currentImage + 1}`;
+    document.getElementById('lbTitle').textContent = project.brand;
+    document.getElementById('lbDesc').textContent = project.description;
+    document.getElementById('lbCounter').textContent = `${currentImage + 1} / ${project.images.length}`;
+  }
+  function nextImage() {
+    const project = projects[currentProject];
+    currentImage = (currentImage + 1) % project.images.length;
+    renderLightbox();
+  }
+  function prevImage() {
+    const project = projects[currentProject];
+    currentImage = (currentImage - 1 + project.images.length) % project.images.length;
+    renderLightbox();
+  }
+  document.addEventListener('keydown', (e) => {
+    if (!document.getElementById('lightbox').classList.contains('active')) return;
+    if (e.key === 'ArrowRight') nextImage();
+    if (e.key === 'ArrowLeft') prevImage();
+    if (e.key === 'Escape') closeLightbox();
+  });
+  document.getElementById('lightbox').addEventListener('click', (e) => {
+    if (e.target.id === 'lightbox') closeLightbox();
+  });
+
+  function copyEmail(btn) {
+    navigator.clipboard.writeText('samuel.s.adedeji@gmail.com').then(() => {
+      const original = btn.textContent;
+      btn.textContent = 'Copied';
+      setTimeout(() => { btn.textContent = original; }, 1500);
+    });
+  }
+</script>
+
+</body>
+</html>
