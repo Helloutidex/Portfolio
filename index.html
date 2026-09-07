@@ -4,10 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Samuel Adedeji — Brand & Visual Identity Designer</title>
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="shortcut icon" href="favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link href="https://fonts.cdnfonts.com/css/redaction" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -25,7 +28,7 @@
   <div class="layout">
 
     <aside class="profile">
-      <div class="avatar"><img src="" alt="" id="avatarImg" style="display:none;"><span id="avatarPlaceholder">Photo</span></div>
+      <div class="avatar"><img src="images/placeholder/portrait-1.jpg" alt="Samuel Adedeji" id="avatarImg"></div>
       <h1>Samuel Adedeji</h1>
       <p class="role">Brand &amp; Visual Identity Designer</p>
 
@@ -61,16 +64,31 @@
       </div>
 
       <div class="logos-row">
-        <div class="logo-box"></div>
-        <div class="logo-box"></div>
-        <div class="logo-box"></div>
-        <div class="logo-box"></div>
-        <div class="logo-box"></div>
+        <div class="logos-track">
+          <div class="logo-box"></div>
+          <div class="logo-box"></div>
+          <div class="logo-box"></div>
+          <div class="logo-box"></div>
+          <div class="logo-box"></div>
+          <div class="logo-box"></div>
+          <div class="logo-box"></div>
+          <div class="logo-box"></div>
+          <div class="logo-box"></div>
+          <div class="logo-box"></div>
+        </div>
       </div>
 
       <div class="section work-section" id="work">
         <h2>Recent Works</h2>
-        <div class="work-grid" id="workGrid"></div>
+
+        <h3 class="work-subheading">Social Media Creatives</h3>
+        <div id="socialBrands"></div>
+
+        <h3 class="work-subheading">Brand Identity</h3>
+        <div id="identityBrands"></div>
+
+        <h3 class="work-subheading">Editorial</h3>
+        <div id="editorialBrands"></div>
       </div>
 
       <div class="section contact-section">
@@ -86,114 +104,251 @@
 
   <div class="footer">
     <span>© 2026 Samuel Adedeji. All rights reserved.</span>
+    <a href="admin.html" class="admin-link">Admin</a>
   </div>
 
 </div>
 
-<!-- LIGHTBOX -->
-<div class="lightbox" id="lightbox">
-  <button class="lb-close" onclick="closeLightbox()">&times;</button>
-  <div class="lightbox-inner">
-    <div class="lightbox-stage" id="lbStage"></div>
-    <div class="lightbox-title" id="lbTitle"></div>
-    <div class="lightbox-desc" id="lbDesc"></div>
-    <div class="lightbox-counter" id="lbCounter"></div>
-    <div class="lightbox-controls">
-      <button class="lb-btn" onclick="prevImage()">&#8592;</button>
-      <button class="lb-btn" onclick="nextImage()">&#8594;</button>
-    </div>
+<!-- VERTICAL VIEWER -->
+<div class="viewer" id="viewer">
+  <button class="viewer-close" onclick="closeViewer()">&times;</button>
+  <div class="viewer-inner">
+    <div class="viewer-title" id="viewerTitle"></div>
+    <div class="viewer-stack" id="viewerStack"></div>
+  </div>
+</div>
+
+<!-- FLIPBOOK VIEWER (Editorial) -->
+<div class="flip-viewer" id="flipbookViewer">
+  <button class="viewer-close" onclick="closeFlipbook()">&times;</button>
+  <div class="viewer-title" id="flipTitle"></div>
+  <div class="flipbook">
+    <div class="flip-layer" id="flipBottom"><div class="flip-media"></div></div>
+    <div class="flip-layer" id="flipTop"><div class="flip-media"></div></div>
+  </div>
+  <div class="flip-controls">
+    <button class="lb-btn" onclick="flipPrev()">&#8592;</button>
+    <span class="flip-counter" id="flipCounter"></span>
+    <button class="lb-btn" onclick="flipNext()">&#8594;</button>
   </div>
 </div>
 
 <script>
   /*
-    PROJECTS DATA
-    -------------
-    Each entry is one brand/client. "brand" is the heading shown under the
-    cover thumbnail so work never gets mixed up between clients.
-    "description" is a short placeholder line — replace with real project
-    notes whenever you're ready.
-    "images" holds every file for that brand — include the cover as the
-    first item. Add as many as you like; the lightbox counter and arrows
-    adjust automatically. Example once you have real files:
-      images: ["images/brandqor/1.jpg", "images/brandqor/2.jpg"]
+    All project content now lives in data.json, so the admin panel can
+    update it without touching this file. If data.json fails to load
+    (e.g. opened locally without a server), it falls back to a couple
+    of placeholders so the page still renders.
   */
-  const projects = [
-    { brand: "Brandqor",  description: "Add project description here.", images: ["", "", "", ""] },
-    { brand: "Client Two", description: "Add project description here.", images: ["", "", ""] },
-    { brand: "Client Three", description: "Add project description here.", images: ["", "", "", "", ""] },
-    { brand: "Client Four", description: "Add project description here.", images: ["", ""] },
-    { brand: "Client Five", description: "Add project description here.", images: ["", "", "", ""] },
-    { brand: "Client Six", description: "Add project description here.", images: ["", "", ""] },
-  ];
+  let socialBrands = [];
+  let identityBrands = [];
+  let editorialBrands = [];
 
-  const grid = document.getElementById('workGrid');
-  projects.forEach((project, index) => {
-    const wrapper = document.createElement('div');
-    wrapper.className = 'work-card';
-    wrapper.onclick = () => openLightbox(index);
+  function mediaTag(item, altText) {
+    if (item && typeof item === 'object' && item.type === 'video') {
+      return item.src
+        ? `<video src="${item.src}" controls playsinline></video>`
+        : `<div class="media-placeholder">Add video</div>`;
+    }
+    const src = item;
+    return src
+      ? `<img src="${src}" alt="${altText}">`
+      : `<div class="media-placeholder">Add image</div>`;
+  }
 
-    const tile = document.createElement('div');
-    tile.className = 'work-item';
-    const cover = project.images[0];
-    tile.innerHTML = cover
-      ? `<img src="${cover}" alt="${project.brand}">`
-      : `<span>Add image</span>`;
-    if (project.images.length > 1) {
-      const badge = document.createElement('span');
-      badge.className = 'count-badge';
-      badge.textContent = project.images.length;
-      tile.appendChild(badge);
+  function renderSocial() {
+    const container = document.getElementById('socialBrands');
+    container.innerHTML = '';
+    socialBrands.forEach((brand, brandIndex) => {
+      const block = document.createElement('div');
+      block.className = 'brand-block';
+      const heading = document.createElement('h4');
+      heading.textContent = brand.name;
+      block.appendChild(heading);
+      const grid = document.createElement('div');
+      grid.className = 'smc-grid';
+      brand.images.forEach((img, imgIndex) => {
+        const thumb = document.createElement('div');
+        thumb.className = 'smc-thumb';
+        thumb.innerHTML = mediaTag(img, brand.name);
+        thumb.onclick = () => openViewer('social', brandIndex, imgIndex);
+        grid.appendChild(thumb);
+      });
+      block.appendChild(grid);
+      container.appendChild(block);
+    });
+  }
+
+  function renderIdentity() {
+    const container = document.getElementById('identityBrands');
+    container.innerHTML = '';
+    identityBrands.forEach((brand, brandIndex) => {
+      const block = document.createElement('div');
+      block.className = 'brand-block';
+      const heading = document.createElement('h4');
+      heading.textContent = brand.name;
+      block.appendChild(heading);
+      const cover = document.createElement('div');
+      cover.className = 'identity-cover';
+      cover.innerHTML = mediaTag(brand.cover, brand.name);
+      cover.onclick = () => openViewer('identity', brandIndex);
+      block.appendChild(cover);
+      container.appendChild(block);
+    });
+  }
+
+  function renderEditorial() {
+    const container = document.getElementById('editorialBrands');
+    container.innerHTML = '';
+    editorialBrands.forEach((brand, brandIndex) => {
+      const block = document.createElement('div');
+      block.className = 'brand-block';
+      const heading = document.createElement('h4');
+      heading.textContent = brand.name;
+      block.appendChild(heading);
+      const cover = document.createElement('div');
+      cover.className = 'identity-cover editorial-cover';
+      cover.innerHTML = mediaTag(brand.pages[0], brand.name);
+      cover.onclick = () => openFlipbook(brandIndex);
+      block.appendChild(cover);
+      container.appendChild(block);
+    });
+  }
+
+  fetch('data.json')
+    .then(res => res.json())
+    .then(data => {
+      socialBrands = data.socialBrands || [];
+      identityBrands = data.identityBrands || [];
+      editorialBrands = data.editorialBrands || [];
+      renderSocial();
+      renderIdentity();
+      renderEditorial();
+    })
+    .catch(() => {
+      socialBrands = [{ name: "Add a brand in the admin panel", images: ["", "", "", ""] }];
+      identityBrands = [];
+      editorialBrands = [];
+      renderSocial();
+    });
+
+  let currentEditorialBrand = null;
+  let editorialIdx = 0;
+
+  function openFlipbook(brandIndex) {
+    currentEditorialBrand = editorialBrands[brandIndex];
+    editorialIdx = 0;
+    document.getElementById('flipTitle').textContent = currentEditorialBrand.name;
+    setupFlipPages();
+    document.getElementById('flipbookViewer').classList.add('active');
+  }
+  function closeFlipbook() {
+    document.getElementById('flipbookViewer').classList.remove('active');
+  }
+  function setupFlipPages() {
+    const top = document.getElementById('flipTop');
+    const bottom = document.getElementById('flipBottom');
+    const pages = currentEditorialBrand.pages;
+    top.style.transition = 'none';
+    top.style.transformOrigin = 'left center';
+    top.style.transform = 'rotateY(0deg)';
+    top.querySelector('.flip-media').innerHTML = mediaTag(pages[editorialIdx], currentEditorialBrand.name);
+    bottom.querySelector('.flip-media').innerHTML = pages[editorialIdx + 1] !== undefined
+      ? mediaTag(pages[editorialIdx + 1], currentEditorialBrand.name)
+      : `<div class="media-placeholder">End of pages</div>`;
+    void top.offsetWidth; // force reflow so the next transition runs
+    top.style.transition = '';
+    updateFlipCounter();
+  }
+  function updateFlipCounter() {
+    document.getElementById('flipCounter').textContent =
+      `${editorialIdx + 1} / ${currentEditorialBrand.pages.length}`;
+  }
+  function flipNext() {
+    const pages = currentEditorialBrand.pages;
+    if (editorialIdx >= pages.length - 1) return;
+    const top = document.getElementById('flipTop');
+    top.style.transformOrigin = 'left center';
+    top.style.transform = 'rotateY(-180deg)';
+    setTimeout(() => {
+      editorialIdx++;
+      setupFlipPages();
+    }, 600);
+  }
+  function flipPrev() {
+    if (editorialIdx <= 0) return;
+    const pages = currentEditorialBrand.pages;
+    const top = document.getElementById('flipTop');
+    const bottom = document.getElementById('flipBottom');
+
+    bottom.querySelector('.flip-media').innerHTML = mediaTag(pages[editorialIdx], currentEditorialBrand.name);
+
+    top.style.transition = 'none';
+    top.style.transformOrigin = 'left center';
+    top.style.transform = 'rotateY(-180deg)';
+    top.querySelector('.flip-media').innerHTML = mediaTag(pages[editorialIdx - 1], currentEditorialBrand.name);
+    void top.offsetWidth;
+    top.style.transition = '';
+
+    requestAnimationFrame(() => {
+      top.style.transform = 'rotateY(0deg)';
+    });
+
+    setTimeout(() => {
+      editorialIdx--;
+      updateFlipCounter();
+    }, 600);
+  }
+  document.getElementById('flipbookViewer').addEventListener('click', (e) => {
+    if (e.target.id === 'flipbookViewer') closeFlipbook();
+  });
+
+  function openViewer(kind, brandIndex, scrollToIndex) {
+    const viewer = document.getElementById('viewer');
+    const stack = document.getElementById('viewerStack');
+    stack.innerHTML = '';
+
+    if (kind === 'social') {
+      const brand = socialBrands[brandIndex];
+      document.getElementById('viewerTitle').textContent = brand.name;
+      brand.images.forEach((img) => {
+        const item = document.createElement('div');
+        item.className = 'viewer-item';
+        item.innerHTML = mediaTag(img, brand.name);
+        stack.appendChild(item);
+      });
+    } else {
+      const brand = identityBrands[brandIndex];
+      document.getElementById('viewerTitle').textContent = brand.name;
+      brand.files.forEach((file, i) => {
+        const item = document.createElement('div');
+        item.className = 'viewer-item';
+        item.innerHTML = mediaTag(file, brand.name);
+        stack.appendChild(item);
+        if (i === 0) {
+          const desc = document.createElement('div');
+          desc.className = 'viewer-desc';
+          desc.textContent = brand.description;
+          stack.appendChild(desc);
+        }
+      });
     }
 
-    const caption = document.createElement('div');
-    caption.className = 'work-caption';
-    caption.innerHTML = `<p class="brand">${project.brand}</p><p class="desc">${project.description}</p>`;
-
-    wrapper.appendChild(tile);
-    wrapper.appendChild(caption);
-    grid.appendChild(wrapper);
-  });
-
-  let currentProject = 0;
-  let currentImage = 0;
-
-  function openLightbox(projectIndex) {
-    currentProject = projectIndex;
-    currentImage = 0;
-    renderLightbox();
-    document.getElementById('lightbox').classList.add('active');
+    viewer.classList.add('active');
   }
-  function closeLightbox() {
-    document.getElementById('lightbox').classList.remove('active');
-  }
-  function renderLightbox() {
-    const project = projects[currentProject];
-    const stage = document.getElementById('lbStage');
-    const src = project.images[currentImage];
-    stage.innerHTML = src ? `<img src="${src}" alt="${project.brand}">` : `Add image ${currentImage + 1}`;
-    document.getElementById('lbTitle').textContent = project.brand;
-    document.getElementById('lbDesc').textContent = project.description;
-    document.getElementById('lbCounter').textContent = `${currentImage + 1} / ${project.images.length}`;
-  }
-  function nextImage() {
-    const project = projects[currentProject];
-    currentImage = (currentImage + 1) % project.images.length;
-    renderLightbox();
-  }
-  function prevImage() {
-    const project = projects[currentProject];
-    currentImage = (currentImage - 1 + project.images.length) % project.images.length;
-    renderLightbox();
+  function closeViewer() {
+    document.getElementById('viewer').classList.remove('active');
+    document.getElementById('viewerStack').innerHTML = '';
   }
   document.addEventListener('keydown', (e) => {
-    if (!document.getElementById('lightbox').classList.contains('active')) return;
-    if (e.key === 'ArrowRight') nextImage();
-    if (e.key === 'ArrowLeft') prevImage();
-    if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'Escape') { closeViewer(); closeFlipbook(); }
+    if (document.getElementById('flipbookViewer').classList.contains('active')) {
+      if (e.key === 'ArrowRight') flipNext();
+      if (e.key === 'ArrowLeft') flipPrev();
+    }
   });
-  document.getElementById('lightbox').addEventListener('click', (e) => {
-    if (e.target.id === 'lightbox') closeLightbox();
+  document.getElementById('viewer').addEventListener('click', (e) => {
+    if (e.target.id === 'viewer') closeViewer();
   });
 
   function copyEmail(btn) {
