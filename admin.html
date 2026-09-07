@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Samuel Adedeji Portfolio</title>
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="shortcut icon" href="favicon.ico">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FFFFFF; --text:#4B4A47; --muted:#9B9994; --line:#EAEAE7; --dark:#1A1A1A;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--paper); color:var(--text); font-family:'Manrope',sans-serif; font-size:15px; line-height:1.6;}
+  .shell{max-width:720px; margin:0 auto; padding:40px 24px 100px;}
+  h1{font-size:22px; font-weight:700; margin:0 0 6px;}
+  .sub{color:var(--muted); font-size:13.5px; margin:0 0 32px;}
+  .warning{
+    border:1px dashed var(--line); border-radius:12px; padding:14px 16px;
+    font-size:13px; color:var(--muted); margin-bottom:32px;
+  }
+  fieldset{border:1px solid var(--line); border-radius:14px; padding:20px; margin:0 0 24px;}
+  legend{font-size:13px; font-weight:700; padding:0 8px;}
+  label{display:block; font-size:13px; font-weight:600; margin:14px 0 6px;}
+  label:first-of-type{margin-top:0;}
+  input[type=text], input[type=password], select, textarea{
+    width:100%; background:#FBFBFA; border:1px solid var(--line); border-radius:8px;
+    padding:10px 12px; font-family:inherit; font-size:14px; color:var(--text);
+  }
+  input[type=file]{width:100%; font-size:13px; margin-top:2px;}
+  textarea{resize:vertical;}
+  .row{display:flex; gap:12px;}
+  .row > div{flex:1;}
+  .checkbox-row{display:flex; align-items:center; gap:8px; margin-top:14px;}
+  .checkbox-row input{width:auto;}
+  .checkbox-row label{margin:0; font-weight:400;}
+  button{
+    font-family:inherit; cursor:pointer; border:none; border-radius:999px;
+    padding:11px 22px; font-size:14px; font-weight:600;
+  }
+  .btn-primary{background:var(--dark); color:var(--paper);}
+  .btn-primary:disabled{opacity:0.5; cursor:not-allowed;}
+  .btn-secondary{background:none; border:1px solid var(--line); color:var(--text);}
+  #gate{display:flex; flex-direction:column; gap:14px; max-width:340px; margin:80px auto;}
+  #panel{display:none;}
+  .status{font-size:13px; margin-top:14px; padding:10px 14px; border-radius:8px; display:none;}
+  .status.show{display:block;}
+  .status.ok{background:#EAF3DE; color:#27500A;}
+  .status.err{background:#FCEBEB; color:#791F1F;}
+  .video-toggle{display:flex; align-items:center; gap:6px; font-size:12.5px; color:var(--muted); margin-top:6px;}
+  .file-item{border:1px solid var(--line); border-radius:10px; padding:12px; margin-bottom:10px;}
+  .file-item .remove{background:none; border:none; color:var(--muted); font-size:12px; cursor:pointer; padding:0; margin-top:6px;}
+  a{color:var(--muted);}
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <div id="gate">
+    <h1>Admin</h1>
+    <p class="sub">This screen is a light deterrent only — the real protection is your GitHub token, which never leaves your browser.</p>
+    <input type="password" id="gatePassword" placeholder="Passcode">
+    <button class="btn-primary" onclick="checkGate()">Enter</button>
+    <div class="status err" id="gateError">Wrong passcode.</div>
+  </div>
+
+  <div id="panel">
+    <h1>Update Your Work</h1>
+    <p class="sub">Uploads go straight into your GitHub repo. The live site updates within about a minute.</p>
+
+    <div class="warning">
+      Videos larger than ~20MB won't upload here — GitHub's API has a size limit. For those, add them manually via GitHub Desktop instead.
+    </div>
+
+    <fieldset>
+      <legend>Connection</legend>
+      <label>GitHub personal access token (needs "repo" scope)</label>
+      <input type="password" id="ghToken" placeholder="ghp_...">
+      <div class="checkbox-row">
+        <input type="checkbox" id="rememberToken">
+        <label for="rememberToken">Remember on this device</label>
+      </div>
+      <div class="row">
+        <div>
+          <label>Repo owner</label>
+          <input type="text" id="ghOwner" value="helloutidex">
+        </div>
+        <div>
+          <label>Repo name</label>
+          <input type="text" id="ghRepo" value="Portfolio">
+        </div>
+      </div>
+      <label>Branch</label>
+      <input type="text" id="ghBranch" value="main">
+    </fieldset>
+
+    <fieldset>
+      <legend>Where does this go?</legend>
+      <label>Category</label>
+      <select id="category" onchange="onCategoryChange()">
+        <option value="socialBrands">Social Media Creatives</option>
+        <option value="identityBrands">Brand Identity</option>
+        <option value="editorialBrands">Editorial</option>
+      </select>
+
+      <label>Brand / project name</label>
+      <select id="existingBrand" onchange="onBrandChange()"></select>
+      <div class="checkbox-row">
+        <input type="checkbox" id="newBrandToggle" onchange="onNewBrandToggle()">
+        <label for="newBrandToggle">This is a new brand</label>
+      </div>
+      <div id="newBrandNameWrap" style="display:none;">
+        <label>New brand name</label>
+        <input type="text" id="newBrandName" placeholder="e.g. Brandqor">
+      </div>
+
+      <div id="descriptionWrap" style="display:none;">
+        <label>Project description (Brand Identity only)</label>
+        <textarea id="brandDescription" rows="3" placeholder="Add project description here."></textarea>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Files</legend>
+      <label>Add images (or videos, for Brand Identity)</label>
+      <input type="file" id="fileInput" multiple accept="image/*,video/*" onchange="onFilesSelected()">
+      <div id="fileList"></div>
+    </fieldset>
+
+    <button class="btn-primary" id="publishBtn" onclick="publish()">Publish to site</button>
+    <button class="btn-secondary" onclick="logout()">Log out</button>
+    <div class="status" id="publishStatus"></div>
+  </div>
+
+</div>
+
+<script>
+  const GATE_PASSCODE = "utidex2026"; // change this to whatever passcode you want
+
+  function checkGate() {
+    const val = document.getElementById('gatePassword').value;
+    if (val === GATE_PASSCODE) {
+      document.getElementById('gate').style.display = 'none';
+      document.getElementById('panel').style.display = 'block';
+      loadSavedToken();
+      loadData();
+    } else {
+      document.getElementById('gateError').classList.add('show');
+    }
+  }
+
+  function loadSavedToken() {
+    const saved = localStorage.getItem('gh_token');
+    if (saved) {
+      document.getElementById('ghToken').value = saved;
+      document.getElementById('rememberToken').checked = true;
+    }
+  }
+  function logout() {
+    document.getElementById('panel').style.display = 'none';
+    document.getElementById('gate').style.display = 'flex';
+    document.getElementById('gatePassword').value = '';
+  }
+
+  function ghConfig() {
+    const remember = document.getElementById('rememberToken').checked;
+    const token = document.getElementById('ghToken').value.trim();
+    if (remember) localStorage.setItem('gh_token', token);
+    else localStorage.removeItem('gh_token');
+    return {
+      token,
+      owner: document.getElementById('ghOwner').value.trim(),
+      repo: document.getElementById('ghRepo').value.trim(),
+      branch: document.getElementById('ghBranch').value.trim() || 'main',
+    };
+  }
+
+  async function ghGetFile(path) {
+    const cfg = ghConfig();
+    const res = await fetch(`https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${path}?ref=${cfg.branch}`, {
+      headers: { Authorization: `token ${cfg.token}`, Accept: 'application/vnd.github+json' }
+    });
+    if (!res.ok) return null;
+    const json = await res.json();
+    return json; // includes .content (base64) and .sha
+  }
+
+  async function ghPutFile(path, base64Content, message, sha) {
+    const cfg = ghConfig();
+    const body = { message, content: base64Content, branch: cfg.branch };
+    if (sha) body.sha = sha;
+    const res = await fetch(`https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${path}`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `token ${cfg.token}`,
+        Accept: 'application/vnd.github+json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `GitHub API error (${res.status})`);
+    }
+    return res.json();
+  }
+
+  let siteData = { socialBrands: [], identityBrands: [], editorialBrands: [] };
+  let dataSha = null;
+
+  async function loadData() {
+    try {
+      const file = await ghGetFile('data.json');
+      if (file) {
+        dataSha = file.sha;
+        siteData = JSON.parse(decodeURIComponent(escape(atob(file.content))));
+      }
+    } catch (e) {
+      showStatus('publishStatus', 'Could not load data.json — check your token and repo details.', false);
+    }
+    onCategoryChange();
+  }
+
+  function onCategoryChange() {
+    const cat = document.getElementById('category').value;
+    document.getElementById('descriptionWrap').style.display = cat === 'identityBrands' ? 'block' : 'none';
+    const list = siteData[cat] || [];
+    const select = document.getElementById('existingBrand');
+    select.innerHTML = list.map((b, i) => `<option value="${i}">${b.name}</option>`).join('');
+    onBrandChange();
+  }
+
+  function onNewBrandToggle() {
+    const isNew = document.getElementById('newBrandToggle').checked;
+    document.getElementById('newBrandNameWrap').style.display = isNew ? 'block' : 'none';
+    document.getElementById('existingBrand').disabled = isNew;
+  }
+
+  function onBrandChange() {
+    const cat = document.getElementById('category').value;
+    const idx = document.getElementById('existingBrand').value;
+    if (cat === 'identityBrands' && idx !== '' && siteData[cat][idx]) {
+      document.getElementById('brandDescription').value = siteData[cat][idx].description || '';
+    }
+  }
+
+  let selectedFiles = [];
+  function onFilesSelected() {
+    const input = document.getElementById('fileInput');
+    selectedFiles = Array.from(input.files).map(f => ({ file: f, isVideo: f.type.startsWith('video/') }));
+    renderFileList();
+  }
+  function renderFileList() {
+    const wrap = document.getElementById('fileList');
+    wrap.innerHTML = '';
+    selectedFiles.forEach((item, i) => {
+      const div = document.createElement('div');
+      div.className = 'file-item';
+      div.innerHTML = `${item.file.name} ${item.isVideo ? '(video)' : ''}
+        <br><button class="remove" onclick="removeFile(${i})">Remove</button>`;
+      wrap.appendChild(div);
+    });
+  }
+  function removeFile(i) {
+    selectedFiles.splice(i, 1);
+    renderFileList();
+  }
+
+  function slugify(name) {
+    return name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  }
+  function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result.split(',')[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+  function showStatus(id, msg, ok) {
+    const el = document.getElementById(id);
+    el.textContent = msg;
+    el.className = `status show ${ok ? 'ok' : 'err'}`;
+  }
+
+  async function publish() {
+    const btn = document.getElementById('publishBtn');
+    btn.disabled = true;
+    btn.textContent = 'Publishing…';
+
+    try {
+      const cat = document.getElementById('category').value;
+      const isNew = document.getElementById('newBrandToggle').checked;
+      const brandName = isNew
+        ? document.getElementById('newBrandName').value.trim()
+        : (siteData[cat][document.getElementById('existingBrand').value] || {}).name;
+
+      if (!brandName) throw new Error('Enter or select a brand name.');
+      const slug = slugify(brandName);
+      const categorySlug = cat === 'socialBrands' ? 'social' : cat === 'identityBrands' ? 'identity' : 'editorial';
+
+      // Upload each selected file to images/<category>/<brand-slug>/
+      const uploadedPaths = [];
+      for (const item of selectedFiles) {
+        const base64 = await fileToBase64(item.file);
+        const path = `images/${categorySlug}/${slug}/${Date.now()}-${item.file.name}`;
+        await ghPutFile(path, base64, `Upload ${item.file.name} for ${brandName}`);
+        uploadedPaths.push({ path, isVideo: item.isVideo });
+      }
+
+      // Find or create the brand entry
+      let brand;
+      if (isNew) {
+        if (cat === 'socialBrands') brand = { name: brandName, images: [] };
+        if (cat === 'identityBrands') brand = { name: brandName, cover: '', description: document.getElementById('brandDescription').value || 'Add project description here.', files: [] };
+        if (cat === 'editorialBrands') brand = { name: brandName, pages: [] };
+        siteData[cat].push(brand);
+      } else {
+        brand = siteData[cat][document.getElementById('existingBrand').value];
+        if (cat === 'identityBrands') brand.description = document.getElementById('brandDescription').value || brand.description;
+      }
+
+      // Attach uploaded files depending on category shape
+      uploadedPaths.forEach(({ path, isVideo }) => {
+        if (cat === 'socialBrands') {
+          brand.images.push(path);
+        } else if (cat === 'identityBrands') {
+          const entry = isVideo ? { type: 'video', src: path } : path;
+          brand.files.push(entry);
+          if (!brand.cover) brand.cover = isVideo ? '' : path;
+        } else if (cat === 'editorialBrands') {
+          brand.pages.push(path);
+        }
+      });
+
+      // Push updated data.json back
+      const updatedJson = JSON.stringify(siteData, null, 2);
+      const base64Json = btoa(unescape(encodeURIComponent(updatedJson)));
+      const result = await ghPutFile('data.json', base64Json, `Update ${brandName}`, dataSha);
+      dataSha = result.content.sha;
+
+      showStatus('publishStatus', `Published ${uploadedPaths.length} file(s) for "${brandName}". Site updates in about a minute.`, true);
+      selectedFiles = [];
+      document.getElementById('fileInput').value = '';
+      renderFileList();
+      document.getElementById('newBrandToggle').checked = false;
+      onNewBrandToggle();
+      onCategoryChange();
+    } catch (e) {
+      showStatus('publishStatus', e.message || 'Something went wrong.', false);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Publish to site';
+    }
+  }
+</script>
+
+</body>
+</html>

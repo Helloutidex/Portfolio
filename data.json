@@ -1,0 +1,32 @@
+{
+  "socialBrands": [
+    { "name": "Brand One",   "images": ["images/placeholder/afkit-ad.jpg", "images/placeholder/afkit-ad.jpg", "", ""] },
+    { "name": "Brand Two",   "images": ["", "", "", ""] },
+    { "name": "Brand Three", "images": ["", "", "", ""] },
+    { "name": "Brand Four",  "images": ["", "", "", ""] }
+  ],
+  "identityBrands": [
+    {
+      "name": "Brand Five",
+      "cover": "images/placeholder/afkit-ad.jpg",
+      "description": "Add project description here.",
+      "files": ["images/placeholder/afkit-ad.jpg", { "type": "video", "src": "" }, "images/placeholder/afkit-ad.jpg", ""]
+    },
+    {
+      "name": "Brand Six",
+      "cover": "",
+      "description": "Add project description here.",
+      "files": ["", "", ""]
+    },
+    {
+      "name": "Brand Seven",
+      "cover": "",
+      "description": "Add project description here.",
+      "files": ["", "", "", ""]
+    }
+  ],
+  "editorialBrands": [
+    { "name": "Magazine One", "pages": ["images/placeholder/afkit-ad.jpg", "images/placeholder/afkit-ad.jpg", "", "", ""] },
+    { "name": "Magazine Two", "pages": ["", "", "", ""] }
+  ]
+}

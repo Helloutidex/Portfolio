@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Work Enquiry — Samuel Adedeji</title>
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="shortcut icon" href="favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="shell">
+
+  <div class="topbar">
+    <div class="email-group">
+      <span>samuel.s.adedeji@gmail.com</span>
+      <button class="copy-btn" onclick="copyEmail(this)">Copy</button>
+    </div>
+    <a class="enquiry-link" href="index.html">Back to Work</a>
+  </div>
+
+  <div class="enquiry-page-header">
+    <a class="back-link" href="index.html">← Back</a>
+    <h1>Work Enquiry</h1>
+    <p class="process-placeholder">My process — details coming soon.</p>
+  </div>
+
+  <div class="enquiry-grid">
+    <form class="enquiry-form" action="https://formsubmit.co/samuel.s.adedeji@gmail.com" method="POST">
+      <div class="form-row">
+        <input type="text" name="name" placeholder="Name" required>
+        <input type="email" name="email" placeholder="Email" required>
+      </div>
+      <textarea name="message" placeholder="Message" rows="6" required></textarea>
+      <input type="hidden" name="_subject" value="New work enquiry from portfolio site">
+      <input type="hidden" name="_captcha" value="false">
+      <input type="hidden" name="_template" value="table">
+      <button type="submit" class="cta-btn">Send Message</button>
+    </form>
+    <div class="enquiry-details">
+      <div>
+        <strong>Location</strong>
+        Lagos, Nigeria
+      </div>
+      <div>
+        <strong>Phone</strong>
+        +234 806 592 5091
+      </div>
+      <div>
+        <strong>Email</strong>
+        samuel.s.adedeji@gmail.com
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>© 2026 Samuel Adedeji. All rights reserved.</span>
+  </div>
+
+</div>
+
+<script>
+  function copyEmail(btn) {
+    navigator.clipboard.writeText('samuel.s.adedeji@gmail.com').then(() => {
+      const original = btn.textContent;
+      btn.textContent = 'Copied';
+      setTimeout(() => { btn.textContent = original; }, 1500);
+    });
+  }
+</script>
+
+</body>
+</html>
