@@ -236,7 +236,8 @@
     });
 
   let currentEditorialBrand = null;
-  let spreadIndex = 0; // each spread = [pages[2*spreadIndex], pages[2*spreadIndex+1]]
+  let spreadIndex = 0; // interior spreads, counted AFTER the cover
+  let covered = true;  // true = showing only the cover, single page
 
   function isDesktopSpread() {
     return window.innerWidth >= 760;
@@ -245,19 +246,36 @@
   function openFlipbook(brandIndex) {
     currentEditorialBrand = editorialBrands[brandIndex];
     spreadIndex = 0;
+    covered = true;
     document.getElementById('flipTitle').textContent = currentEditorialBrand.name;
-    setupSpread();
+    document.getElementById('flipbookViewer').classList.add('covered');
+    setupCover();
     document.getElementById('flipbookViewer').classList.add('active');
   }
   function closeFlipbook() {
     document.getElementById('flipbookViewer').classList.remove('active');
   }
 
-  // On desktop each "step" moves 2 pages (a left+right spread).
-  // On mobile each "step" moves 1 page (single page at a time).
+  function setupCover() {
+    const pages = currentEditorialBrand.pages;
+    const top = document.getElementById('flipTop');
+    const bottom = document.getElementById('flipBottom');
+    top.style.transition = 'none';
+    top.style.transformOrigin = 'left center';
+    top.style.transform = 'rotateY(0deg)';
+    top.querySelector('.flip-media').innerHTML = mediaTag(pages[0], currentEditorialBrand.name);
+    bottom.querySelector('.flip-media').innerHTML = pages[1] !== undefined
+      ? mediaTag(pages[1], currentEditorialBrand.name)
+      : `<div class="media-placeholder">End of pages</div>`;
+    void top.offsetWidth;
+    top.style.transition = '';
+    document.getElementById('flipCounter').textContent = `1 / ${pages.length}`;
+  }
+
+  // Once opened: on desktop each step shows a left+right spread; on mobile, one page at a time.
   function step() { return isDesktopSpread() ? 2 : 1; }
-  function leftIndex() { return isDesktopSpread() ? spreadIndex * 2 : spreadIndex; }
-  function rightIndex() { return isDesktopSpread() ? spreadIndex * 2 + 1 : spreadIndex; }
+  function rightIndex() { return isDesktopSpread() ? 2 + spreadIndex * 2 : 1 + spreadIndex; }
+  function leftIndex() { return 1 + spreadIndex * 2; }
 
   function setupSpread() {
     const pages = currentEditorialBrand.pages;
@@ -268,21 +286,24 @@
     top.style.transition = 'none';
     top.style.transformOrigin = 'left center';
     top.style.transform = 'rotateY(0deg)';
-    top.querySelector('.flip-media').innerHTML = mediaTag(pages[rightIndex()], currentEditorialBrand.name);
+    top.querySelector('.flip-media').innerHTML = pages[rightIndex()] !== undefined
+      ? mediaTag(pages[rightIndex()], currentEditorialBrand.name)
+      : `<div class="media-placeholder">End of pages</div>`;
     bottom.querySelector('.flip-media').innerHTML = pages[rightIndex() + step()] !== undefined
       ? mediaTag(pages[rightIndex() + step()], currentEditorialBrand.name)
       : `<div class="media-placeholder">End of pages</div>`;
     void top.offsetWidth;
     top.style.transition = '';
 
-    left.querySelector('.flip-media').innerHTML = mediaTag(pages[leftIndex()], currentEditorialBrand.name);
-    left.style.display = isDesktopSpread() ? 'block' : 'none';
-
+    if (isDesktopSpread()) {
+      left.querySelector('.flip-media').innerHTML = mediaTag(pages[leftIndex()], currentEditorialBrand.name);
+    }
     updateFlipCounter();
   }
   function updateFlipCounter() {
     const total = currentEditorialBrand.pages.length;
-    document.getElementById('flipCounter').textContent = `${rightIndex() + 1} / ${total}`;
+    const shown = Math.min(rightIndex() + 1, total);
+    document.getElementById('flipCounter').textContent = `${shown} / ${total}`;
   }
 
   // Short synthesized "paper flip" sound — no audio file needed.
@@ -312,9 +333,35 @@
 
   function flipNext() {
     const pages = currentEditorialBrand.pages;
-    if (rightIndex() >= pages.length - 1) return;
-    playFlipSound();
     const top = document.getElementById('flipTop');
+
+    if (covered) {
+      if (pages.length <= 1) return; // nothing behind the cover
+      playFlipSound();
+      covered = false;
+      document.getElementById('flipbookViewer').classList.remove('covered');
+
+      const bottom = document.getElementById('flipBottom');
+      const left = document.getElementById('bookLeft');
+      const rightAfter = isDesktopSpread() ? pages[2] : pages[1];
+      bottom.querySelector('.flip-media').innerHTML = rightAfter !== undefined
+        ? mediaTag(rightAfter, currentEditorialBrand.name)
+        : `<div class="media-placeholder">End of pages</div>`;
+      if (isDesktopSpread()) {
+        left.querySelector('.flip-media').innerHTML = mediaTag(pages[1], currentEditorialBrand.name);
+      }
+      top.style.transformOrigin = 'left center';
+      top.style.transform = 'rotateY(-180deg)';
+      setTimeout(() => {
+        spreadIndex = 0;
+        setupSpread();
+      }, 600);
+      return;
+    }
+
+    if (rightIndex() >= pages.length - 1 && pages[rightIndex()] !== undefined && pages[rightIndex() + step()] === undefined) return;
+    if (pages[rightIndex() + step()] === undefined && pages[rightIndex()] === undefined) return;
+    playFlipSound();
     top.style.transformOrigin = 'left center';
     top.style.transform = 'rotateY(-180deg)';
     setTimeout(() => {
@@ -322,39 +369,53 @@
       setupSpread();
     }, 600);
   }
+
   function flipPrev() {
-    if (spreadIndex <= 0) return;
-    playFlipSound();
+    if (covered) return; // already at the cover, nothing before it
     const pages = currentEditorialBrand.pages;
     const top = document.getElementById('flipTop');
     const bottom = document.getElementById('flipBottom');
     const left = document.getElementById('bookLeft');
 
-    bottom.querySelector('.flip-media').innerHTML = mediaTag(pages[rightIndex()], currentEditorialBrand.name);
+    if (spreadIndex === 0) {
+      // Close the book back to the cover
+      playFlipSound();
+      covered = true;
+      document.getElementById('flipbookViewer').classList.add('covered');
+      bottom.querySelector('.flip-media').innerHTML = mediaTag(pages[rightIndex()], currentEditorialBrand.name);
+      top.style.transition = 'none';
+      top.style.transformOrigin = 'left center';
+      top.style.transform = 'rotateY(-180deg)';
+      top.querySelector('.flip-media').innerHTML = mediaTag(pages[0], currentEditorialBrand.name);
+      void top.offsetWidth;
+      top.style.transition = '';
+      requestAnimationFrame(() => { top.style.transform = 'rotateY(0deg)'; });
+      setTimeout(() => {
+        document.getElementById('flipCounter').textContent = `1 / ${pages.length}`;
+      }, 600);
+      return;
+    }
 
+    playFlipSound();
+    bottom.querySelector('.flip-media').innerHTML = mediaTag(pages[rightIndex()], currentEditorialBrand.name);
     top.style.transition = 'none';
     top.style.transformOrigin = 'left center';
     top.style.transform = 'rotateY(-180deg)';
     top.querySelector('.flip-media').innerHTML = mediaTag(pages[rightIndex() - step()], currentEditorialBrand.name);
     void top.offsetWidth;
     top.style.transition = '';
-
     if (isDesktopSpread()) {
       left.querySelector('.flip-media').innerHTML = mediaTag(pages[leftIndex() - step()], currentEditorialBrand.name);
     }
-
-    requestAnimationFrame(() => {
-      top.style.transform = 'rotateY(0deg)';
-    });
-
+    requestAnimationFrame(() => { top.style.transform = 'rotateY(0deg)'; });
     setTimeout(() => {
       spreadIndex--;
       updateFlipCounter();
     }, 600);
   }
+
   window.addEventListener('resize', () => {
-    if (currentEditorialBrand && document.getElementById('flipbookViewer').classList.contains('active')) {
-      // Recalculate spread boundaries cleanly on breakpoint change
+    if (currentEditorialBrand && document.getElementById('flipbookViewer').classList.contains('active') && !covered) {
       spreadIndex = 0;
       setupSpread();
     }
