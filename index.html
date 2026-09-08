@@ -187,8 +187,7 @@
     const el = document.getElementById('profileContainer');
     const socials = profile.socials || {};
     const socialLinks = ['instagram', 'linkedin', 'behance']
-      .filter(k => socials[k])
-      .map(k => `<a href="${socials[k]}" target="_blank" rel="noopener" aria-label="${k}">${socialIconSvg(k)}</a>`)
+      .map(k => `<a href="${socials[k] || '#'}" ${socials[k] ? 'target="_blank" rel="noopener"' : ''} aria-label="${k}">${socialIconSvg(k)}</a>`)
       .join('');
     el.innerHTML = `
       <div class="avatar"><img src="${profile.avatar || ''}" alt="${profile.name || ''}"></div>
@@ -196,7 +195,7 @@
       <p class="role">${profile.role || ''}</p>
       <p class="bio-quote">${profile.bioQuote || ''}</p>
       ${(profile.bioParagraphs || []).map(p => `<p class="bio-body">${p}</p>`).join('')}
-      ${socialLinks ? `<div class="social-row">${socialLinks}</div>` : ''}
+      <div class="social-row">${socialLinks}</div>
     `;
   }
 
@@ -220,10 +219,7 @@
   }
 
   function renderFooter(footer) {
-    document.getElementById('footerContainer').innerHTML = `
-      <span>${footer.copyright || ''}</span>
-      <a href="admin.html" class="admin-link">Admin</a>
-    `;
+    document.getElementById('footerContainer').innerHTML = `<span>${footer.copyright || ''}</span>`;
     if (footer.email) {
       document.getElementById('emailMeBtn').href = `mailto:${footer.email}`;
     }
@@ -526,28 +522,7 @@
   const hasFinePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
   const funEnabled = !prefersReducedMotion && hasFinePointer;
 
-  // 1. Cursor-follow glow
-  if (funEnabled) {
-    const glow = document.createElement('div');
-    glow.className = 'cursor-glow';
-    document.body.appendChild(glow);
-    let glowX = 0, glowY = 0, targetX = 0, targetY = 0;
-    document.addEventListener('mousemove', (e) => {
-      targetX = e.clientX;
-      targetY = e.clientY;
-      glow.classList.add('active');
-    });
-    document.addEventListener('mouseleave', () => glow.classList.remove('active'));
-    function animateGlow() {
-      glowX += (targetX - glowX) * 0.15;
-      glowY += (targetY - glowY) * 0.15;
-      glow.style.transform = `translate(${glowX}px, ${glowY}px)`;
-      requestAnimationFrame(animateGlow);
-    }
-    animateGlow();
-  }
-
-  // 2. Magnetic buttons
+  // 1. Magnetic buttons
   function makeMagnetic(el) {
     if (!funEnabled || !el) return;
     el.addEventListener('mousemove', (e) => {
@@ -606,7 +581,17 @@
 </script>
 
 <div class="sa-badge" onclick="document.getElementById('work').scrollIntoView({behavior:'smooth'})">
-  <img src="images/placeholder/sa-badge.jpg" alt="Samuel Adedeji">
+  <svg class="sa-badge-ring" viewBox="0 0 200 200">
+    <defs>
+      <path id="saCirclePath" d="M100,100 m-84,0 a84,84 0 1,1 168,0 a84,84 0 1,1 -168,0"/>
+    </defs>
+    <text font-size="13" letter-spacing="3">
+      <textPath href="#saCirclePath" xlink:href="#saCirclePath">
+        SAMUEL.S.ADEDEJI • SAMUEL.S.ADEDEJI •
+      </textPath>
+    </text>
+  </svg>
+  <div class="sa-badge-center">SA<span class="sa-badge-dot">.</span></div>
 </div>
 
 </body>
