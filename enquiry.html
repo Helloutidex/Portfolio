@@ -22,7 +22,10 @@
       <span id="topEmail"></span>
       <button class="copy-btn" onclick="copyEmail(this)">Copy</button>
     </div>
-    <a class="enquiry-link" href="index.html">Back to Work</a>
+    <div class="topbar-right">
+      <a class="enquiry-link" href="index.html">Back to Work</a>
+      <button class="theme-toggle" id="themeToggle" onclick="toggleSiteTheme()" aria-label="Toggle dark mode">🌙</button>
+    </div>
   </div>
 
   <div class="enquiry-page-header">
@@ -52,6 +55,18 @@
 
 <script>
   let emailAddress = 'samuel.s.adedeji@gmail.com';
+
+  function applySiteTheme(theme) {
+    document.body.classList.toggle('dark-mode', theme === 'dark');
+    document.getElementById('themeToggle').textContent = theme === 'dark' ? '☀️' : '🌙';
+  }
+  function toggleSiteTheme() {
+    const isDark = document.body.classList.contains('dark-mode');
+    const next = isDark ? 'light' : 'dark';
+    localStorage.setItem('site_theme', next);
+    applySiteTheme(next);
+  }
+  applySiteTheme(localStorage.getItem('site_theme') || 'light');
 
   function copyEmail(btn) {
     navigator.clipboard.writeText(emailAddress).then(() => {
