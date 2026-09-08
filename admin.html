@@ -80,6 +80,7 @@
       <legend>Connection</legend>
       <label>GitHub personal access token (needs "repo" scope)</label>
       <input type="password" id="ghToken" placeholder="ghp_...">
+      <p style="font-size:12px; color:var(--muted); margin:6px 0 0;">"Bad credentials" usually means the token was copied with a missing character, has expired, or (for fine-grained tokens) wasn't given "Contents: Read and write" access to this repo. Classic tokens with the "repo" checkbox are the most reliable.</p>
       <div class="checkbox-row">
         <input type="checkbox" id="rememberToken">
         <label for="rememberToken">Remember on this device</label>
@@ -179,10 +180,15 @@
     };
   }
 
+  function authHeader(token) {
+    // Fine-grained tokens (github_pat_...) need "Bearer"; classic tokens (ghp_...) use "token"
+    return token.startsWith('github_pat_') ? `Bearer ${token}` : `token ${token}`;
+  }
+
   async function ghGetFile(path) {
     const cfg = ghConfig();
     const res = await fetch(`https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${path}?ref=${cfg.branch}`, {
-      headers: { Authorization: `token ${cfg.token}`, Accept: 'application/vnd.github+json' }
+      headers: { Authorization: authHeader(cfg.token), Accept: 'application/vnd.github+json' }
     });
     if (!res.ok) return null;
     const json = await res.json();
@@ -196,7 +202,7 @@
     const res = await fetch(`https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${path}`, {
       method: 'PUT',
       headers: {
-        Authorization: `token ${cfg.token}`,
+        Authorization: authHeader(cfg.token),
         Accept: 'application/vnd.github+json',
         'Content-Type': 'application/json',
       },

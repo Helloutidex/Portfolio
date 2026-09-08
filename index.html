@@ -28,7 +28,7 @@
   <div class="layout">
 
     <aside class="profile">
-      <div class="avatar"><img src="images/placeholder/portrait-1.jpg" alt="Samuel Adedeji" id="avatarImg"></div>
+      <div class="avatar"><img src="images/placeholder/avatar.jpg" alt="Samuel Adedeji" id="avatarImg"></div>
       <h1>Samuel Adedeji</h1>
       <p class="role">Brand &amp; Visual Identity Designer</p>
 
@@ -123,8 +123,11 @@
   <button class="viewer-close" onclick="closeFlipbook()">&times;</button>
   <div class="viewer-title" id="flipTitle"></div>
   <div class="flipbook">
-    <div class="flip-layer" id="flipBottom"><div class="flip-media"></div></div>
-    <div class="flip-layer" id="flipTop"><div class="flip-media"></div></div>
+    <div class="book-page-left" id="bookLeft"><div class="flip-media"></div></div>
+    <div class="book-page-right">
+      <div class="flip-layer" id="flipBottom"><div class="flip-media"></div></div>
+      <div class="flip-layer" id="flipTop"><div class="flip-media"></div></div>
+    </div>
   </div>
   <div class="flip-controls">
     <button class="lb-btn" onclick="flipPrev()">&#8592;</button>
@@ -233,72 +236,129 @@
     });
 
   let currentEditorialBrand = null;
-  let editorialIdx = 0;
+  let spreadIndex = 0; // each spread = [pages[2*spreadIndex], pages[2*spreadIndex+1]]
+
+  function isDesktopSpread() {
+    return window.innerWidth >= 760;
+  }
 
   function openFlipbook(brandIndex) {
     currentEditorialBrand = editorialBrands[brandIndex];
-    editorialIdx = 0;
+    spreadIndex = 0;
     document.getElementById('flipTitle').textContent = currentEditorialBrand.name;
-    setupFlipPages();
+    setupSpread();
     document.getElementById('flipbookViewer').classList.add('active');
   }
   function closeFlipbook() {
     document.getElementById('flipbookViewer').classList.remove('active');
   }
-  function setupFlipPages() {
+
+  // On desktop each "step" moves 2 pages (a left+right spread).
+  // On mobile each "step" moves 1 page (single page at a time).
+  function step() { return isDesktopSpread() ? 2 : 1; }
+  function leftIndex() { return isDesktopSpread() ? spreadIndex * 2 : spreadIndex; }
+  function rightIndex() { return isDesktopSpread() ? spreadIndex * 2 + 1 : spreadIndex; }
+
+  function setupSpread() {
+    const pages = currentEditorialBrand.pages;
     const top = document.getElementById('flipTop');
     const bottom = document.getElementById('flipBottom');
-    const pages = currentEditorialBrand.pages;
+    const left = document.getElementById('bookLeft');
+
     top.style.transition = 'none';
     top.style.transformOrigin = 'left center';
     top.style.transform = 'rotateY(0deg)';
-    top.querySelector('.flip-media').innerHTML = mediaTag(pages[editorialIdx], currentEditorialBrand.name);
-    bottom.querySelector('.flip-media').innerHTML = pages[editorialIdx + 1] !== undefined
-      ? mediaTag(pages[editorialIdx + 1], currentEditorialBrand.name)
+    top.querySelector('.flip-media').innerHTML = mediaTag(pages[rightIndex()], currentEditorialBrand.name);
+    bottom.querySelector('.flip-media').innerHTML = pages[rightIndex() + step()] !== undefined
+      ? mediaTag(pages[rightIndex() + step()], currentEditorialBrand.name)
       : `<div class="media-placeholder">End of pages</div>`;
-    void top.offsetWidth; // force reflow so the next transition runs
+    void top.offsetWidth;
     top.style.transition = '';
+
+    left.querySelector('.flip-media').innerHTML = mediaTag(pages[leftIndex()], currentEditorialBrand.name);
+    left.style.display = isDesktopSpread() ? 'block' : 'none';
+
     updateFlipCounter();
   }
   function updateFlipCounter() {
-    document.getElementById('flipCounter').textContent =
-      `${editorialIdx + 1} / ${currentEditorialBrand.pages.length}`;
+    const total = currentEditorialBrand.pages.length;
+    document.getElementById('flipCounter').textContent = `${rightIndex() + 1} / ${total}`;
   }
+
+  // Short synthesized "paper flip" sound — no audio file needed.
+  let audioCtx = null;
+  function playFlipSound() {
+    try {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      const duration = 0.22;
+      const bufferSize = audioCtx.sampleRate * duration;
+      const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize);
+      }
+      const noise = audioCtx.createBufferSource();
+      noise.buffer = buffer;
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'highpass';
+      filter.frequency.value = 1200;
+      const gain = audioCtx.createGain();
+      gain.gain.setValueAtTime(0.35, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+      noise.connect(filter).connect(gain).connect(audioCtx.destination);
+      noise.start();
+    } catch (e) { /* audio not available — fail silently */ }
+  }
+
   function flipNext() {
     const pages = currentEditorialBrand.pages;
-    if (editorialIdx >= pages.length - 1) return;
+    if (rightIndex() >= pages.length - 1) return;
+    playFlipSound();
     const top = document.getElementById('flipTop');
     top.style.transformOrigin = 'left center';
     top.style.transform = 'rotateY(-180deg)';
     setTimeout(() => {
-      editorialIdx++;
-      setupFlipPages();
+      spreadIndex++;
+      setupSpread();
     }, 600);
   }
   function flipPrev() {
-    if (editorialIdx <= 0) return;
+    if (spreadIndex <= 0) return;
+    playFlipSound();
     const pages = currentEditorialBrand.pages;
     const top = document.getElementById('flipTop');
     const bottom = document.getElementById('flipBottom');
+    const left = document.getElementById('bookLeft');
 
-    bottom.querySelector('.flip-media').innerHTML = mediaTag(pages[editorialIdx], currentEditorialBrand.name);
+    bottom.querySelector('.flip-media').innerHTML = mediaTag(pages[rightIndex()], currentEditorialBrand.name);
 
     top.style.transition = 'none';
     top.style.transformOrigin = 'left center';
     top.style.transform = 'rotateY(-180deg)';
-    top.querySelector('.flip-media').innerHTML = mediaTag(pages[editorialIdx - 1], currentEditorialBrand.name);
+    top.querySelector('.flip-media').innerHTML = mediaTag(pages[rightIndex() - step()], currentEditorialBrand.name);
     void top.offsetWidth;
     top.style.transition = '';
+
+    if (isDesktopSpread()) {
+      left.querySelector('.flip-media').innerHTML = mediaTag(pages[leftIndex() - step()], currentEditorialBrand.name);
+    }
 
     requestAnimationFrame(() => {
       top.style.transform = 'rotateY(0deg)';
     });
 
     setTimeout(() => {
-      editorialIdx--;
+      spreadIndex--;
       updateFlipCounter();
     }, 600);
   }
+  window.addEventListener('resize', () => {
+    if (currentEditorialBrand && document.getElementById('flipbookViewer').classList.contains('active')) {
+      // Recalculate spread boundaries cleanly on breakpoint change
+      spreadIndex = 0;
+      setupSpread();
+    }
+  });
   document.getElementById('flipbookViewer').addEventListener('click', (e) => {
     if (e.target.id === 'flipbookViewer') closeFlipbook();
   });

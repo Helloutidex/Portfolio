@@ -184,8 +184,8 @@ button{font-family:inherit;}
 
 .smc-grid{
   display:grid;
-  grid-template-columns:repeat(4, 1fr);
-  gap:12px;
+  grid-template-columns:repeat(2, 1fr);
+  gap:16px;
 }
 .smc-thumb,
 .identity-cover{
@@ -304,7 +304,7 @@ button{font-family:inherit;}
 }
 .viewer.active{display:block;}
 .viewer-inner{
-  max-width:520px;
+  max-width:680px;
   margin:0 auto;
   padding-bottom:60px;
 }
@@ -362,17 +362,32 @@ button{font-family:inherit;}
 }
 .flip-viewer.active{display:flex;}
 .flip-viewer .viewer-title{margin:0 0 20px;}
+
 .flipbook{
   position:relative;
-  width:min(86vw, 420px);
+  display:flex;
+  width:min(90vw, 420px);
   aspect-ratio:4/5;
   perspective:1800px;
+}
+.book-page-left{
+  display:none; /* shown only on desktop, via media query below */
+  position:relative;
+  flex:1;
+  background:#2A2A2A;
+  border-radius:12px 0 0 12px;
+  overflow:hidden;
+  box-shadow:6px 0 16px rgba(0,0,0,0.3);
+}
+.book-page-right{
+  position:relative;
+  flex:1;
 }
 .flip-layer{
   position:absolute;
   inset:0;
   background:#232323;
-  border-radius:12px;
+  border-radius:0 12px 12px 0;
   overflow:hidden;
 }
 #flipBottom{z-index:1;}
@@ -391,6 +406,15 @@ button{font-family:inherit;}
   margin-top:24px;
 }
 .flip-counter{color:#B9B6AE; font-size:13px; min-width:44px; text-align:center;}
+
+@media (min-width:760px){
+  .flipbook{
+    width:min(80vw, 760px);
+    aspect-ratio:8/5;
+  }
+  .book-page-left{display:block;}
+}
+
 .lb-btn{
   background:rgba(255,255,255,0.08);
   color:var(--paper);
