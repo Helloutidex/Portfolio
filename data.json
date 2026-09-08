@@ -20,7 +20,11 @@
     "subtitle": "Creating meaningful experiences, intelligent systems and growth opportunities for people and brands."
   },
   "logos": [
-    "", "", "", "", ""
+    "",
+    "",
+    "",
+    "",
+    ""
   ],
   "footer": {
     "location": "Lagos, Nigeria",
@@ -30,10 +34,33 @@
   },
   "enquiryProcess": "My process — details coming soon.",
   "socialBrands": [
-    { "name": "Brand One",   "images": ["images/placeholder/afkit-ad.jpg", "images/placeholder/afkit-ad.jpg", "", ""] },
-    { "name": "Brand Two",   "images": ["", "", "", ""] },
-    { "name": "Brand Three", "images": ["", "", "", ""] },
-    { "name": "Brand Four",  "images": ["", "", "", ""] }
+    {
+      "name": "Brand One",
+      "images": [
+        "images/placeholder/afkit-ad.jpg",
+        "images/placeholder/afkit-ad.jpg",
+        "",
+        ""
+      ]
+    },
+    {
+      "name": "Brand Two",
+      "images": [
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    {
+      "name": "Brand Three",
+      "images": [
+        "",
+        "",
+        "",
+        ""
+      ]
+    }
   ],
   "identityBrands": [
     {
@@ -41,23 +68,57 @@
       "cover": "images/placeholder/afkit-ad.jpg",
       "header": "About this project",
       "description": "Add project description here.",
-      "files": ["images/placeholder/afkit-ad.jpg", { "type": "video", "src": "" }, "images/placeholder/afkit-ad.jpg", ""]
+      "files": [
+        "images/placeholder/afkit-ad.jpg",
+        {
+          "type": "video",
+          "src": ""
+        },
+        "images/placeholder/afkit-ad.jpg",
+        ""
+      ]
     },
     {
       "name": "Brand Six",
       "cover": "",
       "description": "Add project description here.",
-      "files": ["", "", ""]
+      "files": [
+        "",
+        "",
+        ""
+      ]
     },
     {
       "name": "Brand Seven",
       "cover": "",
       "description": "Add project description here.",
-      "files": ["", "", "", ""]
+      "files": [
+        "",
+        "",
+        "",
+        ""
+      ]
     }
   ],
   "editorialBrands": [
-    { "name": "Magazine One", "pages": ["images/placeholder/afkit-ad.jpg", "images/placeholder/afkit-ad.jpg", "", "", ""] },
-    { "name": "Magazine Two", "pages": ["", "", "", ""] }
+    {
+      "name": "Magazine One",
+      "pages": [
+        "images/placeholder/afkit-ad.jpg",
+        "images/placeholder/afkit-ad.jpg",
+        "",
+        "",
+        ""
+      ]
+    },
+    {
+      "name": "Magazine Two",
+      "pages": [
+        "",
+        "",
+        "",
+        ""
+      ]
+    }
   ]
 }
