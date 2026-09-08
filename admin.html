@@ -97,6 +97,8 @@
       </div>
       <label>Branch</label>
       <input type="text" id="ghBranch" value="main">
+      <button class="btn-secondary" style="margin-top:14px;" onclick="loadData()">Load current content</button>
+      <div class="status" id="loadStatus"></div>
     </fieldset>
 
     <fieldset>
@@ -120,7 +122,9 @@
       </div>
 
       <div id="descriptionWrap" style="display:none;">
-        <label>Project description (Brand Identity only)</label>
+        <label>Project header (a short title shown above the description)</label>
+        <input type="text" id="brandHeader" placeholder="e.g. About this project">
+        <label>Project description</label>
         <textarea id="brandDescription" rows="3" placeholder="Add project description here."></textarea>
       </div>
     </fieldset>
@@ -219,14 +223,22 @@
   let dataSha = null;
 
   async function loadData() {
+    const token = document.getElementById('ghToken').value.trim();
+    if (!token) {
+      showStatus('loadStatus', 'Paste your GitHub token above first.', false);
+      return;
+    }
     try {
       const file = await ghGetFile('data.json');
       if (file) {
         dataSha = file.sha;
         siteData = JSON.parse(decodeURIComponent(escape(atob(file.content))));
+        showStatus('loadStatus', 'Connected — brands loaded below.', true);
+      } else {
+        showStatus('loadStatus', 'Could not find data.json — check repo owner/name/branch.', false);
       }
     } catch (e) {
-      showStatus('publishStatus', 'Could not load data.json — check your token and repo details.', false);
+      showStatus('loadStatus', 'Could not connect — check your token.', false);
     }
     onCategoryChange();
   }
@@ -251,6 +263,7 @@
     const idx = document.getElementById('existingBrand').value;
     if (cat === 'identityBrands' && idx !== '' && siteData[cat][idx]) {
       document.getElementById('brandDescription').value = siteData[cat][idx].description || '';
+      document.getElementById('brandHeader').value = siteData[cat][idx].header || '';
     }
   }
 
@@ -322,12 +335,15 @@
       let brand;
       if (isNew) {
         if (cat === 'socialBrands') brand = { name: brandName, images: [] };
-        if (cat === 'identityBrands') brand = { name: brandName, cover: '', description: document.getElementById('brandDescription').value || 'Add project description here.', files: [] };
+        if (cat === 'identityBrands') brand = { name: brandName, cover: '', header: document.getElementById('brandHeader').value || '', description: document.getElementById('brandDescription').value || 'Add project description here.', files: [] };
         if (cat === 'editorialBrands') brand = { name: brandName, pages: [] };
         siteData[cat].push(brand);
       } else {
         brand = siteData[cat][document.getElementById('existingBrand').value];
-        if (cat === 'identityBrands') brand.description = document.getElementById('brandDescription').value || brand.description;
+        if (cat === 'identityBrands') {
+          brand.description = document.getElementById('brandDescription').value || brand.description;
+          brand.header = document.getElementById('brandHeader').value || brand.header || '';
+        }
       }
 
       // Attach uploaded files depending on category shape

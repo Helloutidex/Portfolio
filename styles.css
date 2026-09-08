@@ -329,6 +329,12 @@ button{font-family:inherit;}
   justify-content:center;
   color:#8A8A8A;
 }
+.viewer-desc-heading{
+  color:var(--paper);
+  font-size:15px;
+  font-weight:700;
+  padding:4px 4px 6px;
+}
 .viewer-desc{
   color:#C7C5BE;
   font-size:14px;

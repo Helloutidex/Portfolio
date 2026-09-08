@@ -447,6 +447,12 @@
         item.innerHTML = mediaTag(file, brand.name);
         stack.appendChild(item);
         if (i === 0) {
+          if (brand.header) {
+            const heading = document.createElement('div');
+            heading.className = 'viewer-desc-heading';
+            heading.textContent = brand.header;
+            stack.appendChild(heading);
+          }
           const desc = document.createElement('div');
           desc.className = 'viewer-desc';
           desc.textContent = brand.description;

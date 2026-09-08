@@ -9,6 +9,7 @@
     {
       "name": "Brand Five",
       "cover": "images/placeholder/afkit-ad.jpg",
+      "header": "About this project",
       "description": "Add project description here.",
       "files": ["images/placeholder/afkit-ad.jpg", { "type": "video", "src": "" }, "images/placeholder/afkit-ad.jpg", ""]
     },
