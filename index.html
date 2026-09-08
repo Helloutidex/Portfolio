@@ -81,6 +81,7 @@
 <div class="flip-viewer" id="flipbookViewer">
   <button class="viewer-close" onclick="closeFlipbook()">&times;</button>
   <div class="viewer-title" id="flipTitle"></div>
+  <div class="flip-caption" id="flipCaption"></div>
   <div class="flipbook">
     <div class="book-page-left" id="bookLeft"><div class="flip-media"></div></div>
     <div class="book-page-right">
@@ -127,6 +128,18 @@
       const heading = document.createElement('h4');
       heading.textContent = brand.name;
       block.appendChild(heading);
+      if (brand.header) {
+        const h = document.createElement('p');
+        h.className = 'brand-header-text';
+        h.textContent = brand.header;
+        block.appendChild(h);
+      }
+      if (brand.description) {
+        const d = document.createElement('p');
+        d.className = 'brand-desc-text';
+        d.textContent = brand.description;
+        block.appendChild(d);
+      }
       const grid = document.createElement('div');
       grid.className = 'smc-grid';
       brand.images.forEach((img, imgIndex) => {
@@ -200,8 +213,13 @@
   }
 
   function renderHero(hero) {
+    const styleParts = [];
+    if (hero.fontFamily) styleParts.push(`font-family:${hero.fontFamily}`);
+    if (hero.fontSize) styleParts.push(`font-size:${hero.fontSize}px`);
+    if (hero.color) styleParts.push(`color:${hero.color}`);
+    const styleAttr = styleParts.length ? `style="${styleParts.join(';')}"` : '';
     document.getElementById('heroContainer').innerHTML = `
-      <h2 class="hero-title" id="heroTitleEl">${hero.title || ''}</h2>
+      <h2 class="hero-title" id="heroTitleEl" ${styleAttr}>${hero.title || ''}</h2>
       <p class="hero-sub">${hero.subtitle || ''}</p>
       <button class="cta-btn" onclick="document.getElementById('work').scrollIntoView({behavior:'smooth'})">Recent Work →</button>
     `;
@@ -267,6 +285,10 @@
     spreadIndex = 0;
     covered = true;
     document.getElementById('flipTitle').textContent = currentEditorialBrand.name;
+    const captionParts = [];
+    if (currentEditorialBrand.header) captionParts.push(`<strong>${currentEditorialBrand.header}</strong>`);
+    if (currentEditorialBrand.description) captionParts.push(currentEditorialBrand.description);
+    document.getElementById('flipCaption').innerHTML = captionParts.join('<br>');
     document.getElementById('flipbookViewer').classList.add('covered');
     setupCover();
     document.getElementById('flipbookViewer').classList.add('active');

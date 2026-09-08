@@ -70,9 +70,30 @@
   .logo-item span{font-size:11px; color:var(--muted);}
   .logo-item button{background:none; border:none; color:#B23A3A; font-size:11px; cursor:pointer; padding:0;}
   a{color:var(--muted);}
+  #toast{
+    position:fixed;
+    top:16px;
+    left:50%;
+    transform:translateX(-50%) translateY(-20px);
+    max-width:90vw;
+    padding:12px 20px;
+    border-radius:10px;
+    font-size:14px;
+    font-weight:600;
+    z-index:1000;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity 0.25s ease, transform 0.25s ease;
+    box-shadow:0 8px 24px rgba(0,0,0,0.15);
+  }
+  #toast.show{opacity:1; transform:translateX(-50%) translateY(0); pointer-events:auto;}
+  #toast.ok{background:#EAF3DE; color:#27500A;}
+  #toast.err{background:#FCEBEB; color:#791F1F;}
 </style>
 </head>
 <body>
+
+<div id="toast"></div>
 
 <div class="shell">
 
@@ -158,6 +179,23 @@
       <input type="text" id="heroTitle">
       <label>Subheading</label>
       <textarea id="heroSubtitle" rows="3"></textarea>
+      <div class="row" style="margin-top:14px;">
+        <div>
+          <label>Font</label>
+          <select id="heroFont">
+            <option value="'Playfair Display', Georgia, serif">Playfair Display (serif)</option>
+            <option value="'Manrope', sans-serif">Manrope (sans)</option>
+            <option value="Georgia, serif">Georgia (classic serif)</option>
+            <option value="'Courier New', monospace">Courier (monospace)</option>
+          </select>
+        </div>
+        <div>
+          <label>Size (px, desktop)</label>
+          <input type="text" id="heroSize" placeholder="e.g. 54">
+        </div>
+      </div>
+      <label>Color</label>
+      <input type="text" id="heroColor" placeholder="#4B4A47 or leave blank for default">
       <button class="btn-primary" style="margin-top:16px;" onclick="saveHero()">Save headline</button>
       <div class="status" id="heroStatus"></div>
     </fieldset>
@@ -216,9 +254,16 @@
       </select>
 
       <label>Brand / project name</label>
-      <select id="existingBrand" onchange="onBrandChange()"></select>
+      <select id="existingBrand" onchange="onBrandChange()">
+        <option value="__new__">+ Add a new brand</option>
+      </select>
 
-      <div id="renameWrap" style="margin-top:10px;">
+      <div id="newBrandNameWrap" style="display:none;">
+        <label>New brand name</label>
+        <input type="text" id="newBrandName" placeholder="e.g. Brandqor">
+      </div>
+
+      <div id="renameWrap" style="margin-top:10px; display:none;">
         <label>Rename this brand</label>
         <div class="row">
           <input type="text" id="renameBrandInput" placeholder="New name for this brand">
@@ -227,19 +272,10 @@
         <button class="btn-danger" style="margin-top:10px;" onclick="deleteBrand()">Delete this brand</button>
       </div>
 
-      <div class="checkbox-row">
-        <input type="checkbox" id="newBrandToggle" onchange="onNewBrandToggle()">
-        <label for="newBrandToggle">This is a new brand</label>
-      </div>
-      <div id="newBrandNameWrap" style="display:none;">
-        <label>New brand name</label>
-        <input type="text" id="newBrandName" placeholder="e.g. Brandqor">
-      </div>
-
-      <div id="descriptionWrap" style="display:none;">
-        <label>Project header (a short title shown above the description)</label>
+      <div id="descriptionWrap">
+        <label>Header (a short title shown above the description)</label>
         <input type="text" id="brandHeader" placeholder="e.g. About this project">
-        <label>Project description</label>
+        <label>Description</label>
         <textarea id="brandDescription" rows="3" placeholder="Add project description here."></textarea>
       </div>
     </fieldset>
@@ -409,6 +445,9 @@
     const h = siteData.hero || {};
     document.getElementById('heroTitle').value = h.title || '';
     document.getElementById('heroSubtitle').value = h.subtitle || '';
+    document.getElementById('heroFont').value = h.fontFamily || "'Playfair Display', Georgia, serif";
+    document.getElementById('heroSize').value = h.fontSize || '';
+    document.getElementById('heroColor').value = h.color || '';
 
     const f = siteData.footer || {};
     document.getElementById('footerLocation').value = f.location || '';
@@ -460,6 +499,11 @@
     const el = document.getElementById(id);
     el.textContent = msg;
     el.className = `status show ${ok ? 'ok' : 'err'}`;
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.className = `${ok ? 'ok' : 'err'} show`;
+    clearTimeout(showStatus._t);
+    showStatus._t = setTimeout(() => toast.classList.remove('show'), 4500);
   }
   function slugify(name) {
     return name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
@@ -500,6 +544,9 @@
       siteData.hero = {
         title: document.getElementById('heroTitle').value,
         subtitle: document.getElementById('heroSubtitle').value,
+        fontFamily: document.getElementById('heroFont').value,
+        fontSize: document.getElementById('heroSize').value.trim(),
+        color: document.getElementById('heroColor').value.trim(),
       };
       await pushDataJson('Update homepage headline');
       showStatus('heroStatus', 'Headline saved.', true);
@@ -601,37 +648,38 @@
   // ---------- BRANDS ----------
   function onCategoryChange() {
     const cat = document.getElementById('category').value;
-    document.getElementById('descriptionWrap').style.display = cat === 'identityBrands' ? 'block' : 'none';
     const list = siteData[cat] || [];
     const select = document.getElementById('existingBrand');
-    select.innerHTML = list.map((b, i) => `<option value="${i}">${b.name}</option>`).join('');
+    select.innerHTML = `<option value="__new__">+ Add a new brand</option>` +
+      list.map((b, i) => `<option value="${i}">${b.name}</option>`).join('');
     onBrandChange();
   }
 
-  function onNewBrandToggle() {
-    const isNew = document.getElementById('newBrandToggle').checked;
-    document.getElementById('newBrandNameWrap').style.display = isNew ? 'block' : 'none';
-    document.getElementById('existingBrand').disabled = isNew;
-    document.getElementById('renameWrap').style.display = isNew ? 'none' : 'block';
-  }
-
   function onBrandChange() {
+    const val = document.getElementById('existingBrand').value;
+    const isNew = val === '__new__';
+    document.getElementById('newBrandNameWrap').style.display = isNew ? 'block' : 'none';
+    document.getElementById('renameWrap').style.display = isNew ? 'none' : 'block';
+
+    if (isNew) {
+      document.getElementById('newBrandName').value = '';
+      document.getElementById('brandDescription').value = '';
+      document.getElementById('brandHeader').value = '';
+      return;
+    }
     const cat = document.getElementById('category').value;
-    const idx = document.getElementById('existingBrand').value;
-    const brand = siteData[cat] && siteData[cat][idx];
+    const brand = siteData[cat] && siteData[cat][val];
     if (!brand) return;
     document.getElementById('renameBrandInput').value = brand.name;
-    if (cat === 'identityBrands') {
-      document.getElementById('brandDescription').value = brand.description || '';
-      document.getElementById('brandHeader').value = brand.header || '';
-    }
+    document.getElementById('brandDescription').value = brand.description || '';
+    document.getElementById('brandHeader').value = brand.header || '';
   }
 
   async function renameBrand() {
     const cat = document.getElementById('category').value;
     const idx = document.getElementById('existingBrand').value;
     const newName = document.getElementById('renameBrandInput').value.trim();
-    if (!siteData[cat] || !siteData[cat][idx] || !newName) return;
+    if (idx === '__new__' || !siteData[cat] || !siteData[cat][idx] || !newName) return;
     try {
       siteData[cat][idx].name = newName;
       await pushDataJson(`Rename brand to ${newName}`);
@@ -645,7 +693,7 @@
   async function deleteBrand() {
     const cat = document.getElementById('category').value;
     const idx = document.getElementById('existingBrand').value;
-    const brand = siteData[cat] && siteData[cat][idx];
+    const brand = idx !== '__new__' && siteData[cat] && siteData[cat][idx];
     if (!brand) return;
     if (!confirm(`Delete "${brand.name}"? This can't be undone.`)) return;
     try {
@@ -725,12 +773,13 @@
 
     try {
       const cat = document.getElementById('category').value;
-      const isNew = document.getElementById('newBrandToggle').checked;
+      const selectedVal = document.getElementById('existingBrand').value;
+      const isNew = selectedVal === '__new__';
       const brandName = isNew
         ? document.getElementById('newBrandName').value.trim()
-        : (siteData[cat][document.getElementById('existingBrand').value] || {}).name;
+        : (siteData[cat][selectedVal] || {}).name;
 
-      if (!brandName) throw new Error('Enter or select a brand name.');
+      if (!brandName) throw new Error('Enter a name for the new brand, or pick an existing one.');
       const slug = slugify(brandName);
       const categorySlug = cat === 'socialBrands' ? 'social' : cat === 'identityBrands' ? 'identity' : 'editorial';
 
@@ -745,18 +794,19 @@
         fileIndex++;
       }
 
+      const headerVal = document.getElementById('brandHeader').value || '';
+      const descVal = document.getElementById('brandDescription').value || '';
+
       let brand;
       if (isNew) {
-        if (cat === 'socialBrands') brand = { name: brandName, images: [] };
-        if (cat === 'identityBrands') brand = { name: brandName, cover: '', header: document.getElementById('brandHeader').value || '', description: document.getElementById('brandDescription').value || 'Add project description here.', files: [] };
-        if (cat === 'editorialBrands') brand = { name: brandName, pages: [] };
+        if (cat === 'socialBrands') brand = { name: brandName, header: headerVal, description: descVal, images: [] };
+        if (cat === 'identityBrands') brand = { name: brandName, cover: '', header: headerVal, description: descVal || 'Add project description here.', files: [] };
+        if (cat === 'editorialBrands') brand = { name: brandName, header: headerVal, description: descVal, pages: [] };
         siteData[cat].push(brand);
       } else {
-        brand = siteData[cat][document.getElementById('existingBrand').value];
-        if (cat === 'identityBrands') {
-          brand.description = document.getElementById('brandDescription').value || brand.description;
-          brand.header = document.getElementById('brandHeader').value || brand.header || '';
-        }
+        brand = siteData[cat][selectedVal];
+        brand.header = headerVal || brand.header || '';
+        brand.description = descVal || brand.description || '';
       }
 
       uploadedPaths.forEach(({ path, isVideo }) => {
@@ -777,8 +827,6 @@
       selectedFiles = [];
       document.getElementById('fileInput').value = '';
       renderFileList();
-      document.getElementById('newBrandToggle').checked = false;
-      onNewBrandToggle();
       onCategoryChange();
     } catch (e) {
       showStatus('publishStatus', e.message || 'Something went wrong.', false);
