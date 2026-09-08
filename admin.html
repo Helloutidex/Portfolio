@@ -9,6 +9,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="shortcut icon" href="favicon.ico">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
   :root{
     --paper:#FFFFFF; --card:#FAFAFA; --text:#4B4A47; --muted:#9B9994; --line:#EAEAE7; --dark:#1A1A1A;
@@ -245,8 +246,8 @@
 
     <fieldset>
       <legend>Add Files to Selected Brand</legend>
-      <label>Add images (or videos, for Brand Identity)</label>
-      <input type="file" id="fileInput" multiple accept="image/*,video/*" onchange="onFilesSelected()">
+      <label>Add images (or videos, for Brand Identity). PDFs are auto-split into pages for Editorial.</label>
+      <input type="file" id="fileInput" multiple accept="image/*,video/*,application/pdf" onchange="onFilesSelected()">
       <div id="fileList"></div>
     </fieldset>
 
@@ -654,18 +655,56 @@
   }
 
   let selectedFiles = [];
-  function onFilesSelected() {
+  async function onFilesSelected() {
     const input = document.getElementById('fileInput');
-    selectedFiles = Array.from(input.files).map(f => ({ file: f, isVideo: f.type.startsWith('video/') }));
+    const rawFiles = Array.from(input.files);
+    selectedFiles = [];
+    renderFileList(); // clear while processing
+    for (const f of rawFiles) {
+      if (f.type === 'application/pdf') {
+        showStatus('publishStatus', `Converting ${f.name} to page images…`, true);
+        try {
+          const pages = await pdfToImages(f);
+          pages.forEach((dataUrl, i) => {
+            selectedFiles.push({
+              dataUrl,
+              filename: `${f.name.replace(/\.pdf$/i, '')}-page${i + 1}.png`,
+              isVideo: false,
+            });
+          });
+        } catch (e) {
+          showStatus('publishStatus', `Could not read ${f.name} as a PDF.`, false);
+        }
+      } else {
+        selectedFiles.push({ file: f, isVideo: f.type.startsWith('video/') });
+      }
+    }
+    document.getElementById('publishStatus').classList.remove('show');
     renderFileList();
+  }
+  async function pdfToImages(file) {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    const images = [];
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const viewport = page.getViewport({ scale: 1.5 });
+      const canvas = document.createElement('canvas');
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+      await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+      images.push(canvas.toDataURL('image/png'));
+    }
+    return images;
   }
   function renderFileList() {
     const wrap = document.getElementById('fileList');
     wrap.innerHTML = '';
     selectedFiles.forEach((item, i) => {
+      const name = item.file ? item.file.name : item.filename;
       const div = document.createElement('div');
       div.className = 'file-item';
-      div.innerHTML = `${item.file.name} ${item.isVideo ? '(video)' : ''}
+      div.innerHTML = `${name} ${item.isVideo ? '(video)' : ''}
         <br><button class="remove" onclick="removeFile(${i})">Remove</button>`;
       wrap.appendChild(div);
     });
@@ -692,11 +731,14 @@
       const categorySlug = cat === 'socialBrands' ? 'social' : cat === 'identityBrands' ? 'identity' : 'editorial';
 
       const uploadedPaths = [];
+      let fileIndex = 0;
       for (const item of selectedFiles) {
-        const base64 = await fileToBase64(item.file);
-        const path = `images/${categorySlug}/${slug}/${Date.now()}-${item.file.name}`;
-        await ghPutFile(path, base64, `Upload ${item.file.name} for ${brandName}`);
+        const base64 = item.dataUrl ? item.dataUrl.split(',')[1] : await fileToBase64(item.file);
+        const filename = item.dataUrl ? item.filename : item.file.name;
+        const path = `images/${categorySlug}/${slug}/${Date.now()}-${fileIndex}-${filename}`;
+        await ghPutFile(path, base64, `Upload ${filename} for ${brandName}`);
         uploadedPaths.push({ path, isVideo: item.isVideo });
+        fileIndex++;
       }
 
       let brand;

@@ -7,12 +7,14 @@
   --max:1120px;
 }
 body.dark-mode{
-  --paper:#17160F;
-  --text:#EDEAE2;
-  --muted:#A6A399;
-  --line:#38362D;
-  --dark:#EDEAE2;
+  --paper:#131211;
+  --text:#F1EFEA;
+  --muted:#8C8A85;
+  --line:#2C2A26;
+  --dark:#E8213C;
 }
+body.dark-mode .cta-btn{color:#F1EFEA;}
+body.dark-mode .cta-btn:hover{opacity:0.88;}
 body{transition:background 0.2s ease, color 0.2s ease;}
 *{box-sizing:border-box;}
 body{
