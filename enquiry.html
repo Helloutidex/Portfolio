@@ -19,7 +19,7 @@
 
   <div class="topbar">
     <div class="email-group">
-      <span>samuel.s.adedeji@gmail.com</span>
+      <span id="topEmail"></span>
       <button class="copy-btn" onclick="copyEmail(this)">Copy</button>
     </div>
     <a class="enquiry-link" href="index.html">Back to Work</a>
@@ -28,11 +28,11 @@
   <div class="enquiry-page-header">
     <a class="back-link" href="index.html">← Back</a>
     <h1>Work Enquiry</h1>
-    <p class="process-placeholder">My process — details coming soon.</p>
+    <p class="process-placeholder" id="processText"></p>
   </div>
 
   <div class="enquiry-grid">
-    <form class="enquiry-form" action="https://formsubmit.co/samuel.s.adedeji@gmail.com" method="POST">
+    <form class="enquiry-form" id="enquiryForm" method="POST">
       <div class="form-row">
         <input type="text" name="name" placeholder="Name" required>
         <input type="email" name="email" placeholder="Email" required>
@@ -43,36 +43,46 @@
       <input type="hidden" name="_template" value="table">
       <button type="submit" class="cta-btn">Send Message</button>
     </form>
-    <div class="enquiry-details">
-      <div>
-        <strong>Location</strong>
-        Lagos, Nigeria
-      </div>
-      <div>
-        <strong>Phone</strong>
-        +234 806 592 5091
-      </div>
-      <div>
-        <strong>Email</strong>
-        samuel.s.adedeji@gmail.com
-      </div>
-    </div>
+    <div class="enquiry-details" id="enquiryDetails"></div>
   </div>
 
-  <div class="footer">
-    <span>© 2026 Samuel Adedeji. All rights reserved.</span>
-  </div>
+  <div class="footer" id="footerContainer"></div>
 
 </div>
 
 <script>
+  let emailAddress = 'samuel.s.adedeji@gmail.com';
+
   function copyEmail(btn) {
-    navigator.clipboard.writeText('samuel.s.adedeji@gmail.com').then(() => {
+    navigator.clipboard.writeText(emailAddress).then(() => {
       const original = btn.textContent;
       btn.textContent = 'Copied';
       setTimeout(() => { btn.textContent = original; }, 1500);
     });
   }
+
+  fetch('data.json')
+    .then(res => res.json())
+    .then(data => {
+      const footer = data.footer || {};
+      emailAddress = footer.email || emailAddress;
+
+      document.getElementById('topEmail').textContent = emailAddress;
+      document.getElementById('processText').textContent = data.enquiryProcess || 'My process — details coming soon.';
+      document.getElementById('enquiryForm').setAttribute('action', `https://formsubmit.co/${emailAddress}`);
+
+      document.getElementById('enquiryDetails').innerHTML = `
+        <div><strong>Location</strong>${footer.location || ''}</div>
+        <div><strong>Phone</strong>${footer.phone || ''}</div>
+        <div><strong>Email</strong>${emailAddress}</div>
+      `;
+      document.getElementById('footerContainer').innerHTML = `<span>${footer.copyright || ''}</span>`;
+    })
+    .catch(() => {
+      document.getElementById('topEmail').textContent = emailAddress;
+      document.getElementById('processText').textContent = 'My process — details coming soon.';
+      document.getElementById('enquiryForm').setAttribute('action', `https://formsubmit.co/${emailAddress}`);
+    });
 </script>
 
 </body>

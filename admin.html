@@ -11,12 +11,19 @@
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --paper:#FFFFFF; --text:#4B4A47; --muted:#9B9994; --line:#EAEAE7; --dark:#1A1A1A;
+    --paper:#FFFFFF; --card:#FAFAFA; --text:#4B4A47; --muted:#9B9994; --line:#EAEAE7; --dark:#1A1A1A;
   }
+  body.dark-mode{
+    --paper:#161513; --card:#201F1D; --text:#EDEBE6; --muted:#9B9994; --line:#3A3835; --dark:#EDEBE6;
+  }
+  body.dark-mode .btn-primary{color:#161513;}
+  body.dark-mode input, body.dark-mode textarea, body.dark-mode select{background:#26241F; color:var(--text);}
   *{box-sizing:border-box;}
   body{margin:0; background:var(--paper); color:var(--text); font-family:'Manrope',sans-serif; font-size:15px; line-height:1.6;}
-  .shell{max-width:720px; margin:0 auto; padding:40px 24px 100px;}
+  .shell{max-width:760px; margin:0 auto; padding:40px 24px 100px;}
+  .top-row{display:flex; justify-content:space-between; align-items:flex-start;}
   h1{font-size:22px; font-weight:700; margin:0 0 6px;}
+  h2.section-title{font-size:16px; font-weight:700; margin:36px 0 4px;}
   .sub{color:var(--muted); font-size:13.5px; margin:0 0 32px;}
   .warning{
     border:1px dashed var(--line); border-radius:12px; padding:14px 16px;
@@ -26,7 +33,7 @@
   legend{font-size:13px; font-weight:700; padding:0 8px;}
   label{display:block; font-size:13px; font-weight:600; margin:14px 0 6px;}
   label:first-of-type{margin-top:0;}
-  input[type=text], input[type=password], select, textarea{
+  input[type=text], input[type=password], input[type=email], select, textarea{
     width:100%; background:#FBFBFA; border:1px solid var(--line); border-radius:8px;
     padding:10px 12px; font-family:inherit; font-size:14px; color:var(--text);
   }
@@ -44,15 +51,23 @@
   .btn-primary{background:var(--dark); color:var(--paper);}
   .btn-primary:disabled{opacity:0.5; cursor:not-allowed;}
   .btn-secondary{background:none; border:1px solid var(--line); color:var(--text);}
+  .btn-danger{background:none; border:1px solid #E9C7C7; color:#B23A3A;}
+  .btn-toggle{background:none; border:1px solid var(--line); color:var(--text); border-radius:999px; padding:8px 14px; font-size:13px;}
   #gate{display:flex; flex-direction:column; gap:14px; max-width:340px; margin:80px auto;}
   #panel{display:none;}
   .status{font-size:13px; margin-top:14px; padding:10px 14px; border-radius:8px; display:none;}
   .status.show{display:block;}
   .status.ok{background:#EAF3DE; color:#27500A;}
   .status.err{background:#FCEBEB; color:#791F1F;}
-  .video-toggle{display:flex; align-items:center; gap:6px; font-size:12.5px; color:var(--muted); margin-top:6px;}
+  body.dark-mode .status.ok{background:#233A16; color:#B7E39A;}
+  body.dark-mode .status.err{background:#3A1E1E; color:#F0AFAF;}
   .file-item{border:1px solid var(--line); border-radius:10px; padding:12px; margin-bottom:10px;}
   .file-item .remove{background:none; border:none; color:var(--muted); font-size:12px; cursor:pointer; padding:0; margin-top:6px;}
+  .logo-list{display:flex; flex-wrap:wrap; gap:12px; margin:10px 0;}
+  .logo-item{border:1px solid var(--line); border-radius:8px; padding:8px; display:flex; flex-direction:column; align-items:center; gap:6px; width:110px;}
+  .logo-item img{max-width:90px; max-height:36px; object-fit:contain;}
+  .logo-item span{font-size:11px; color:var(--muted);}
+  .logo-item button{background:none; border:none; color:#B23A3A; font-size:11px; cursor:pointer; padding:0;}
   a{color:var(--muted);}
 </style>
 </head>
@@ -69,8 +84,13 @@
   </div>
 
   <div id="panel">
-    <h1>Update Your Work</h1>
-    <p class="sub">Uploads go straight into your GitHub repo. The live site updates within about a minute.</p>
+    <div class="top-row">
+      <div>
+        <h1>Manage Your Site</h1>
+        <p class="sub">Changes push straight to GitHub. The live site updates within about a minute.</p>
+      </div>
+      <button class="btn-toggle" onclick="toggleDarkMode()" id="darkToggleBtn">🌙 Dark</button>
+    </div>
 
     <div class="warning">
       Videos larger than ~20MB won't upload here — GitHub's API has a size limit. For those, add them manually via GitHub Desktop instead.
@@ -101,8 +121,92 @@
       <div class="status" id="loadStatus"></div>
     </fieldset>
 
+    <!-- PROFILE -->
+    <h2 class="section-title">Profile</h2>
     <fieldset>
-      <legend>Where does this go?</legend>
+      <label>Name</label>
+      <input type="text" id="profileName">
+      <label>Role / title</label>
+      <input type="text" id="profileRole">
+      <label>Bold intro line</label>
+      <textarea id="profileBioQuote" rows="2"></textarea>
+      <label>Bio paragraphs (separate paragraphs with a blank line)</label>
+      <textarea id="profileBioParagraphs" rows="8"></textarea>
+      <label>Profile photo (auto-converts to grayscale on the site)</label>
+      <input type="file" id="avatarFile" accept="image/*">
+      <div class="row" style="margin-top:14px;">
+        <div>
+          <label>Instagram URL</label>
+          <input type="text" id="socialInstagram" placeholder="https://instagram.com/...">
+        </div>
+        <div>
+          <label>LinkedIn URL</label>
+          <input type="text" id="socialLinkedin" placeholder="https://linkedin.com/in/...">
+        </div>
+      </div>
+      <label>Behance URL</label>
+      <input type="text" id="socialBehance" placeholder="https://behance.net/...">
+      <button class="btn-primary" style="margin-top:16px;" onclick="saveProfile()">Save profile</button>
+      <div class="status" id="profileStatus"></div>
+    </fieldset>
+
+    <!-- HERO -->
+    <h2 class="section-title">Homepage Headline</h2>
+    <fieldset>
+      <label>Headline</label>
+      <input type="text" id="heroTitle">
+      <label>Subheading</label>
+      <textarea id="heroSubtitle" rows="3"></textarea>
+      <button class="btn-primary" style="margin-top:16px;" onclick="saveHero()">Save headline</button>
+      <div class="status" id="heroStatus"></div>
+    </fieldset>
+
+    <!-- LOGOS -->
+    <h2 class="section-title">Client Logos (scrolling strip)</h2>
+    <fieldset>
+      <div class="logo-list" id="logoList"></div>
+      <label>Add logo image(s)</label>
+      <input type="file" id="logoFiles" accept="image/*" multiple>
+      <button class="btn-primary" style="margin-top:16px;" onclick="saveLogos()">Save logos</button>
+      <div class="status" id="logoStatus"></div>
+    </fieldset>
+
+    <!-- FOOTER / CONTACT -->
+    <h2 class="section-title">Contact & Footer</h2>
+    <fieldset>
+      <label>Location</label>
+      <input type="text" id="footerLocation">
+      <label>Phone (used for WhatsApp link too — include country code)</label>
+      <input type="text" id="footerPhone">
+      <label>Email</label>
+      <input type="email" id="footerEmail">
+      <label>Copyright line</label>
+      <input type="text" id="footerCopyright">
+      <button class="btn-primary" style="margin-top:16px;" onclick="saveFooter()">Save contact info</button>
+      <div class="status" id="footerStatus"></div>
+    </fieldset>
+
+    <!-- ENQUIRY PROCESS -->
+    <h2 class="section-title">Work Enquiry Page</h2>
+    <fieldset>
+      <label>"My process" text</label>
+      <textarea id="enquiryProcessText" rows="4"></textarea>
+      <button class="btn-primary" style="margin-top:16px;" onclick="saveEnquiryProcess()">Save process text</button>
+      <div class="status" id="enquiryStatus"></div>
+    </fieldset>
+
+    <!-- FAVICON -->
+    <h2 class="section-title">Favicon (browser tab icon)</h2>
+    <fieldset>
+      <label>Upload a square image (at least 180×180px works best)</label>
+      <input type="file" id="faviconFile" accept="image/*">
+      <button class="btn-primary" style="margin-top:16px;" onclick="saveFavicon()">Update favicon</button>
+      <div class="status" id="faviconStatus"></div>
+    </fieldset>
+
+    <!-- BRANDS / WORK -->
+    <h2 class="section-title">Recent Work</h2>
+    <fieldset>
       <label>Category</label>
       <select id="category" onchange="onCategoryChange()">
         <option value="socialBrands">Social Media Creatives</option>
@@ -112,6 +216,16 @@
 
       <label>Brand / project name</label>
       <select id="existingBrand" onchange="onBrandChange()"></select>
+
+      <div id="renameWrap" style="margin-top:10px;">
+        <label>Rename this brand</label>
+        <div class="row">
+          <input type="text" id="renameBrandInput" placeholder="New name for this brand">
+          <button class="btn-secondary" style="flex:0 0 auto;" onclick="renameBrand()">Rename</button>
+        </div>
+        <button class="btn-danger" style="margin-top:10px;" onclick="deleteBrand()">Delete this brand</button>
+      </div>
+
       <div class="checkbox-row">
         <input type="checkbox" id="newBrandToggle" onchange="onNewBrandToggle()">
         <label for="newBrandToggle">This is a new brand</label>
@@ -130,13 +244,13 @@
     </fieldset>
 
     <fieldset>
-      <legend>Files</legend>
+      <legend>Add Files to Selected Brand</legend>
       <label>Add images (or videos, for Brand Identity)</label>
       <input type="file" id="fileInput" multiple accept="image/*,video/*" onchange="onFilesSelected()">
       <div id="fileList"></div>
     </fieldset>
 
-    <button class="btn-primary" id="publishBtn" onclick="publish()">Publish to site</button>
+    <button class="btn-primary" id="publishBtn" onclick="publish()">Publish files to site</button>
     <button class="btn-secondary" onclick="logout()">Log out</button>
     <div class="status" id="publishStatus"></div>
   </div>
@@ -152,6 +266,7 @@
       document.getElementById('gate').style.display = 'none';
       document.getElementById('panel').style.display = 'block';
       loadSavedToken();
+      loadDarkModePref();
       loadData();
     } else {
       document.getElementById('gateError').classList.add('show');
@@ -171,6 +286,18 @@
     document.getElementById('gatePassword').value = '';
   }
 
+  function toggleDarkMode() {
+    const isDark = document.body.classList.toggle('dark-mode');
+    localStorage.setItem('admin_dark_mode', isDark ? '1' : '0');
+    document.getElementById('darkToggleBtn').textContent = isDark ? '☀️ Light' : '🌙 Dark';
+  }
+  function loadDarkModePref() {
+    if (localStorage.getItem('admin_dark_mode') === '1') {
+      document.body.classList.add('dark-mode');
+      document.getElementById('darkToggleBtn').textContent = '☀️ Light';
+    }
+  }
+
   function ghConfig() {
     const remember = document.getElementById('rememberToken').checked;
     const token = document.getElementById('ghToken').value.trim();
@@ -185,7 +312,6 @@
   }
 
   function authHeader(token) {
-    // Fine-grained tokens (github_pat_...) need "Bearer"; classic tokens (ghp_...) use "token"
     return token.startsWith('github_pat_') ? `Bearer ${token}` : `token ${token}`;
   }
 
@@ -195,8 +321,7 @@
       headers: { Authorization: authHeader(cfg.token), Accept: 'application/vnd.github+json' }
     });
     if (!res.ok) return null;
-    const json = await res.json();
-    return json; // includes .content (base64) and .sha
+    return res.json();
   }
 
   async function ghPutFile(path, base64Content, message, sha) {
@@ -219,7 +344,28 @@
     return res.json();
   }
 
-  let siteData = { socialBrands: [], identityBrands: [], editorialBrands: [] };
+  async function ghDeleteFile(path, message, sha) {
+    const cfg = ghConfig();
+    const res = await fetch(`https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${path}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: authHeader(cfg.token),
+        Accept: 'application/vnd.github+json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ message, sha, branch: cfg.branch }),
+    });
+    return res.ok;
+  }
+
+  let siteData = {
+    profile: { name: '', role: '', avatar: '', bioQuote: '', bioParagraphs: [], socials: {} },
+    hero: { title: '', subtitle: '' },
+    logos: [],
+    footer: { location: '', phone: '', email: '', copyright: '' },
+    enquiryProcess: '',
+    socialBrands: [], identityBrands: [], editorialBrands: []
+  };
   let dataSha = null;
 
   async function loadData() {
@@ -233,7 +379,12 @@
       if (file) {
         dataSha = file.sha;
         siteData = JSON.parse(decodeURIComponent(escape(atob(file.content))));
-        showStatus('loadStatus', 'Connected — brands loaded below.', true);
+        siteData.profile = siteData.profile || { socials: {} };
+        siteData.hero = siteData.hero || {};
+        siteData.logos = siteData.logos || [];
+        siteData.footer = siteData.footer || {};
+        showStatus('loadStatus', 'Connected — content loaded below.', true);
+        populateFormsFromData();
       } else {
         showStatus('loadStatus', 'Could not find data.json — check repo owner/name/branch.', false);
       }
@@ -243,6 +394,206 @@
     onCategoryChange();
   }
 
+  function populateFormsFromData() {
+    const p = siteData.profile || {};
+    document.getElementById('profileName').value = p.name || '';
+    document.getElementById('profileRole').value = p.role || '';
+    document.getElementById('profileBioQuote').value = p.bioQuote || '';
+    document.getElementById('profileBioParagraphs').value = (p.bioParagraphs || []).join('\n\n');
+    const s = p.socials || {};
+    document.getElementById('socialInstagram').value = s.instagram || '';
+    document.getElementById('socialLinkedin').value = s.linkedin || '';
+    document.getElementById('socialBehance').value = s.behance || '';
+
+    const h = siteData.hero || {};
+    document.getElementById('heroTitle').value = h.title || '';
+    document.getElementById('heroSubtitle').value = h.subtitle || '';
+
+    const f = siteData.footer || {};
+    document.getElementById('footerLocation').value = f.location || '';
+    document.getElementById('footerPhone').value = f.phone || '';
+    document.getElementById('footerEmail').value = f.email || '';
+    document.getElementById('footerCopyright').value = f.copyright || '';
+
+    document.getElementById('enquiryProcessText').value = siteData.enquiryProcess || '';
+
+    renderLogoList();
+  }
+
+  function renderLogoList() {
+    const wrap = document.getElementById('logoList');
+    wrap.innerHTML = '';
+    (siteData.logos || []).forEach((src, i) => {
+      if (!src) return;
+      const item = document.createElement('div');
+      item.className = 'logo-item';
+      item.innerHTML = `<img src="${src}"><span>Logo ${i + 1}</span><button onclick="removeLogo(${i})">Remove</button>`;
+      wrap.appendChild(item);
+    });
+  }
+  function removeLogo(i) {
+    siteData.logos.splice(i, 1);
+    renderLogoList();
+  }
+
+  async function pushDataJson(message) {
+    const updatedJson = JSON.stringify(siteData, null, 2);
+    const base64Json = btoa(unescape(encodeURIComponent(updatedJson)));
+    const result = await ghPutFile('data.json', base64Json, message, dataSha);
+    dataSha = result.content.sha;
+  }
+
+  function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result.split(',')[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+  function showStatus(id, msg, ok) {
+    const el = document.getElementById(id);
+    el.textContent = msg;
+    el.className = `status show ${ok ? 'ok' : 'err'}`;
+  }
+  function slugify(name) {
+    return name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  }
+
+  // ---------- PROFILE ----------
+  async function saveProfile() {
+    try {
+      let avatarPath = siteData.profile.avatar || '';
+      const file = document.getElementById('avatarFile').files[0];
+      if (file) {
+        const base64 = await fileToBase64(file);
+        avatarPath = `images/placeholder/avatar-${Date.now()}-${file.name}`;
+        await ghPutFile(avatarPath, base64, 'Update profile photo');
+      }
+      siteData.profile = {
+        name: document.getElementById('profileName').value,
+        role: document.getElementById('profileRole').value,
+        avatar: avatarPath,
+        bioQuote: document.getElementById('profileBioQuote').value,
+        bioParagraphs: document.getElementById('profileBioParagraphs').value.split(/\n\s*\n/).map(s => s.trim()).filter(Boolean),
+        socials: {
+          instagram: document.getElementById('socialInstagram').value,
+          linkedin: document.getElementById('socialLinkedin').value,
+          behance: document.getElementById('socialBehance').value,
+        }
+      };
+      await pushDataJson('Update profile');
+      showStatus('profileStatus', 'Profile saved.', true);
+    } catch (e) {
+      showStatus('profileStatus', e.message || 'Something went wrong.', false);
+    }
+  }
+
+  // ---------- HERO ----------
+  async function saveHero() {
+    try {
+      siteData.hero = {
+        title: document.getElementById('heroTitle').value,
+        subtitle: document.getElementById('heroSubtitle').value,
+      };
+      await pushDataJson('Update homepage headline');
+      showStatus('heroStatus', 'Headline saved.', true);
+    } catch (e) {
+      showStatus('heroStatus', e.message || 'Something went wrong.', false);
+    }
+  }
+
+  // ---------- LOGOS ----------
+  async function saveLogos() {
+    try {
+      const files = Array.from(document.getElementById('logoFiles').files);
+      for (const file of files) {
+        const base64 = await fileToBase64(file);
+        const path = `images/placeholder/logo-${Date.now()}-${file.name}`;
+        await ghPutFile(path, base64, `Add logo ${file.name}`);
+        siteData.logos.push(path);
+      }
+      await pushDataJson('Update client logos');
+      document.getElementById('logoFiles').value = '';
+      renderLogoList();
+      showStatus('logoStatus', 'Logos saved.', true);
+    } catch (e) {
+      showStatus('logoStatus', e.message || 'Something went wrong.', false);
+    }
+  }
+
+  // ---------- FOOTER ----------
+  async function saveFooter() {
+    try {
+      siteData.footer = {
+        location: document.getElementById('footerLocation').value,
+        phone: document.getElementById('footerPhone').value,
+        email: document.getElementById('footerEmail').value,
+        copyright: document.getElementById('footerCopyright').value,
+      };
+      await pushDataJson('Update contact info');
+      showStatus('footerStatus', 'Contact info saved.', true);
+    } catch (e) {
+      showStatus('footerStatus', e.message || 'Something went wrong.', false);
+    }
+  }
+
+  // ---------- ENQUIRY PROCESS ----------
+  async function saveEnquiryProcess() {
+    try {
+      siteData.enquiryProcess = document.getElementById('enquiryProcessText').value;
+      await pushDataJson('Update work enquiry process text');
+      showStatus('enquiryStatus', 'Saved.', true);
+    } catch (e) {
+      showStatus('enquiryStatus', e.message || 'Something went wrong.', false);
+    }
+  }
+
+  // ---------- FAVICON ----------
+  function resizeImageToBase64(img, size) {
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, size, size);
+    return canvas.toDataURL('image/png').split(',')[1];
+  }
+  async function saveFavicon() {
+    const file = document.getElementById('faviconFile').files[0];
+    if (!file) {
+      showStatus('faviconStatus', 'Choose an image first.', false);
+      return;
+    }
+    try {
+      const dataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      const img = new Image();
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = dataUrl;
+      });
+      const targets = [
+        { path: 'favicon-16.png', size: 16 },
+        { path: 'favicon-32.png', size: 32 },
+        { path: 'apple-touch-icon.png', size: 180 },
+      ];
+      for (const t of targets) {
+        const base64 = resizeImageToBase64(img, t.size);
+        const existing = await ghGetFile(t.path);
+        await ghPutFile(t.path, base64, `Update ${t.path}`, existing ? existing.sha : undefined);
+      }
+      showStatus('faviconStatus', 'Favicon updated (favicon.ico itself is unchanged, but all modern browsers use the PNG icons instead).', true);
+    } catch (e) {
+      showStatus('faviconStatus', e.message || 'Something went wrong.', false);
+    }
+  }
+
+  // ---------- BRANDS ----------
   function onCategoryChange() {
     const cat = document.getElementById('category').value;
     document.getElementById('descriptionWrap').style.display = cat === 'identityBrands' ? 'block' : 'none';
@@ -256,14 +607,49 @@
     const isNew = document.getElementById('newBrandToggle').checked;
     document.getElementById('newBrandNameWrap').style.display = isNew ? 'block' : 'none';
     document.getElementById('existingBrand').disabled = isNew;
+    document.getElementById('renameWrap').style.display = isNew ? 'none' : 'block';
   }
 
   function onBrandChange() {
     const cat = document.getElementById('category').value;
     const idx = document.getElementById('existingBrand').value;
-    if (cat === 'identityBrands' && idx !== '' && siteData[cat][idx]) {
-      document.getElementById('brandDescription').value = siteData[cat][idx].description || '';
-      document.getElementById('brandHeader').value = siteData[cat][idx].header || '';
+    const brand = siteData[cat] && siteData[cat][idx];
+    if (!brand) return;
+    document.getElementById('renameBrandInput').value = brand.name;
+    if (cat === 'identityBrands') {
+      document.getElementById('brandDescription').value = brand.description || '';
+      document.getElementById('brandHeader').value = brand.header || '';
+    }
+  }
+
+  async function renameBrand() {
+    const cat = document.getElementById('category').value;
+    const idx = document.getElementById('existingBrand').value;
+    const newName = document.getElementById('renameBrandInput').value.trim();
+    if (!siteData[cat] || !siteData[cat][idx] || !newName) return;
+    try {
+      siteData[cat][idx].name = newName;
+      await pushDataJson(`Rename brand to ${newName}`);
+      onCategoryChange();
+      showStatus('publishStatus', `Renamed to "${newName}".`, true);
+    } catch (e) {
+      showStatus('publishStatus', e.message || 'Something went wrong.', false);
+    }
+  }
+
+  async function deleteBrand() {
+    const cat = document.getElementById('category').value;
+    const idx = document.getElementById('existingBrand').value;
+    const brand = siteData[cat] && siteData[cat][idx];
+    if (!brand) return;
+    if (!confirm(`Delete "${brand.name}"? This can't be undone.`)) return;
+    try {
+      siteData[cat].splice(idx, 1);
+      await pushDataJson(`Delete brand ${brand.name}`);
+      onCategoryChange();
+      showStatus('publishStatus', `Deleted "${brand.name}".`, true);
+    } catch (e) {
+      showStatus('publishStatus', e.message || 'Something went wrong.', false);
     }
   }
 
@@ -289,23 +675,6 @@
     renderFileList();
   }
 
-  function slugify(name) {
-    return name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-  }
-  function fileToBase64(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result.split(',')[1]);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  }
-  function showStatus(id, msg, ok) {
-    const el = document.getElementById(id);
-    el.textContent = msg;
-    el.className = `status show ${ok ? 'ok' : 'err'}`;
-  }
-
   async function publish() {
     const btn = document.getElementById('publishBtn');
     btn.disabled = true;
@@ -322,7 +691,6 @@
       const slug = slugify(brandName);
       const categorySlug = cat === 'socialBrands' ? 'social' : cat === 'identityBrands' ? 'identity' : 'editorial';
 
-      // Upload each selected file to images/<category>/<brand-slug>/
       const uploadedPaths = [];
       for (const item of selectedFiles) {
         const base64 = await fileToBase64(item.file);
@@ -331,7 +699,6 @@
         uploadedPaths.push({ path, isVideo: item.isVideo });
       }
 
-      // Find or create the brand entry
       let brand;
       if (isNew) {
         if (cat === 'socialBrands') brand = { name: brandName, images: [] };
@@ -346,7 +713,6 @@
         }
       }
 
-      // Attach uploaded files depending on category shape
       uploadedPaths.forEach(({ path, isVideo }) => {
         if (cat === 'socialBrands') {
           brand.images.push(path);
@@ -359,11 +725,7 @@
         }
       });
 
-      // Push updated data.json back
-      const updatedJson = JSON.stringify(siteData, null, 2);
-      const base64Json = btoa(unescape(encodeURIComponent(updatedJson)));
-      const result = await ghPutFile('data.json', base64Json, `Update ${brandName}`, dataSha);
-      dataSha = result.content.sha;
+      await pushDataJson(`Update ${brandName}`);
 
       showStatus('publishStatus', `Published ${uploadedPaths.length} file(s) for "${brandName}". Site updates in about a minute.`, true);
       selectedFiles = [];
@@ -376,7 +738,7 @@
       showStatus('publishStatus', e.message || 'Something went wrong.', false);
     } finally {
       btn.disabled = false;
-      btn.textContent = 'Publish to site';
+      btn.textContent = 'Publish files to site';
     }
   }
 </script>

@@ -70,8 +70,16 @@ button{font-family:inherit;}
 .profile{
   position:sticky;
   top:32px;
-  border-right:1px solid var(--line);
   padding-right:32px;
+}
+.profile::after{
+  content:"";
+  position:absolute;
+  top:0;
+  right:0;
+  bottom:0;
+  width:1px;
+  background:linear-gradient(to bottom, transparent, var(--line) 15%, var(--line) 85%, transparent);
 }
 .avatar{
   width:88px;
@@ -162,6 +170,16 @@ button{font-family:inherit;}
   background:var(--line);
   border-radius:6px;
   opacity:0.7;
+}
+.logo-box.logo-img{
+  width:auto;
+  max-width:140px;
+  height:32px;
+  background:none;
+  border-radius:0;
+  opacity:0.85;
+  object-fit:contain;
+  filter:grayscale(40%);
 }
 @media (prefers-reduced-motion: reduce){
   .logos-track{animation:none;}
@@ -462,4 +480,7 @@ button{font-family:inherit;}
   .smc-grid{grid-template-columns:repeat(2, 1fr);}
   .enquiry-grid{grid-template-columns:1fr;}
   .form-row{flex-direction:column;}
+}
+@media (max-width:480px){
+  .smc-grid{grid-template-columns:1fr;}
 }

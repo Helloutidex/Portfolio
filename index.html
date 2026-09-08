@@ -27,55 +27,14 @@
 
   <div class="layout">
 
-    <aside class="profile">
-      <div class="avatar"><img src="images/placeholder/avatar.jpg" alt="Samuel Adedeji" id="avatarImg"></div>
-      <h1>Samuel Adedeji</h1>
-      <p class="role">Brand &amp; Visual Identity Designer</p>
-
-      <p class="bio-quote">I've developed a deep appreciation for the role culture plays in shaping aesthetics and functionality.</p>
-
-      <p class="bio-body">My name is Samuel "Utidex" Adedeji, a freelance designer with over five years of experience in brand identity, strategy, visual design, and print media. I create design solutions that balance visual appeal with functional impact across diverse projects.</p>
-
-      <p class="bio-body">I'm deeply inspired by how culture shapes design, and I believe the most effective work is human centered, purposeful, and rooted in empathy and context. I'm motivated to contribute in environments that value creative problem solving, growth, and meaningful outcomes. Based in Lagos, Nigeria, I work primarily remotely with occasional hybrid collaboration.</p>
-
-      <p class="bio-body">Outside design, I enjoy sci-fi films, good music, exploring AI automation, and on a lighter note, fried plantain with chocolate.</p>
-
-      <div class="social-row">
-        <a href="#" aria-label="Instagram">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="0.6" fill="currentColor" stroke="none"/></svg>
-        </a>
-        <a href="#" aria-label="LinkedIn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="3"/><line x1="7.5" y1="10" x2="7.5" y2="17"/><circle cx="7.5" cy="6.8" r="0.9" fill="currentColor" stroke="none"/><path d="M11.5 17v-4.2c0-1.6 1-2.6 2.4-2.6 1.3 0 2.1.9 2.1 2.6V17"/></svg>
-        </a>
-        <a href="#" aria-label="Behance">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7h5.2a2.4 2.4 0 0 1 0 4.8H3z"/><path d="M3 11.8h5.6a2.6 2.6 0 0 1 0 5.2H3z"/><path d="M14 13.2c0-2 1.4-3.4 3.3-3.4 2 0 3.2 1.4 3.2 3.6v.4h-5.3c.1 1.3 1 2.1 2.2 2.1.9 0 1.5-.3 1.9-.9l1.1.9c-.7 1-1.8 1.6-3.1 1.6-2 0-3.3-1.4-3.3-3.6z"/><line x1="15.3" y1="7.8" x2="19.3" y2="7.8"/></svg>
-        </a>
-      </div>
-    </aside>
+    <aside class="profile" id="profileContainer"></aside>
 
     <div class="content">
 
-      <div class="section hero-section">
-        <h2 class="hero-title">Design What's Next.</h2>
-        <p class="hero-sub">Creating meaningful experiences, intelligent systems and growth opportunities for people and brands.</p>
-        <button class="cta-btn" onclick="document.getElementById('work').scrollIntoView({behavior:'smooth'})">
-          Recent Work →
-        </button>
-      </div>
+      <div class="section hero-section" id="heroContainer"></div>
 
       <div class="logos-row">
-        <div class="logos-track">
-          <div class="logo-box"></div>
-          <div class="logo-box"></div>
-          <div class="logo-box"></div>
-          <div class="logo-box"></div>
-          <div class="logo-box"></div>
-          <div class="logo-box"></div>
-          <div class="logo-box"></div>
-          <div class="logo-box"></div>
-          <div class="logo-box"></div>
-          <div class="logo-box"></div>
-        </div>
+        <div class="logos-track" id="logosTrack"></div>
       </div>
 
       <div class="section work-section" id="work">
@@ -94,18 +53,15 @@
       <div class="section contact-section">
         <h2>Tell me about your next project.</h2>
         <div class="contact-actions">
-          <a class="cta-btn" href="mailto:samuel.s.adedeji@gmail.com">Email Me</a>
-          <a class="btn-secondary" href="https://wa.me/2348065925091" target="_blank" rel="noopener">WhatsApp</a>
+          <a class="cta-btn" id="emailMeBtn" href="#">Email Me</a>
+          <a class="btn-secondary" id="whatsappBtn" href="#" target="_blank" rel="noopener">WhatsApp</a>
         </div>
       </div>
 
     </div>
   </div>
 
-  <div class="footer">
-    <span>© 2026 Samuel Adedeji. All rights reserved.</span>
-    <a href="admin.html" class="admin-link">Admin</a>
-  </div>
+  <div class="footer" id="footerContainer"></div>
 
 </div>
 
@@ -218,9 +174,68 @@
     });
   }
 
+  function socialIconSvg(kind) {
+    if (kind === 'instagram') return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="0.6" fill="currentColor" stroke="none"/></svg>`;
+    if (kind === 'linkedin') return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="3"/><line x1="7.5" y1="10" x2="7.5" y2="17"/><circle cx="7.5" cy="6.8" r="0.9" fill="currentColor" stroke="none"/><path d="M11.5 17v-4.2c0-1.6 1-2.6 2.4-2.6 1.3 0 2.1.9 2.1 2.6V17"/></svg>`;
+    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7h5.2a2.4 2.4 0 0 1 0 4.8H3z"/><path d="M3 11.8h5.6a2.6 2.6 0 0 1 0 5.2H3z"/><path d="M14 13.2c0-2 1.4-3.4 3.3-3.4 2 0 3.2 1.4 3.2 3.6v.4h-5.3c.1 1.3 1 2.1 2.2 2.1.9 0 1.5-.3 1.9-.9l1.1.9c-.7 1-1.8 1.6-3.1 1.6-2 0-3.3-1.4-3.3-3.6z"/><line x1="15.3" y1="7.8" x2="19.3" y2="7.8"/></svg>`;
+  }
+
+  function renderProfile(profile) {
+    const el = document.getElementById('profileContainer');
+    const socials = profile.socials || {};
+    const socialLinks = ['instagram', 'linkedin', 'behance']
+      .filter(k => socials[k])
+      .map(k => `<a href="${socials[k]}" target="_blank" rel="noopener" aria-label="${k}">${socialIconSvg(k)}</a>`)
+      .join('');
+    el.innerHTML = `
+      <div class="avatar"><img src="${profile.avatar || ''}" alt="${profile.name || ''}"></div>
+      <h1>${profile.name || ''}</h1>
+      <p class="role">${profile.role || ''}</p>
+      <p class="bio-quote">${profile.bioQuote || ''}</p>
+      ${(profile.bioParagraphs || []).map(p => `<p class="bio-body">${p}</p>`).join('')}
+      ${socialLinks ? `<div class="social-row">${socialLinks}</div>` : ''}
+    `;
+  }
+
+  function renderHero(hero) {
+    document.getElementById('heroContainer').innerHTML = `
+      <h2 class="hero-title">${hero.title || ''}</h2>
+      <p class="hero-sub">${hero.subtitle || ''}</p>
+      <button class="cta-btn" onclick="document.getElementById('work').scrollIntoView({behavior:'smooth'})">Recent Work →</button>
+    `;
+  }
+
+  function renderLogos(logos) {
+    const track = document.getElementById('logosTrack');
+    const list = (logos && logos.length ? logos : ['', '', '', '', '']);
+    const doubled = list.concat(list); // duplicate for seamless marquee loop
+    track.innerHTML = doubled.map(src =>
+      src ? `<img src="${src}" alt="Client logo" class="logo-box logo-img">` : `<div class="logo-box"></div>`
+    ).join('');
+  }
+
+  function renderFooter(footer) {
+    document.getElementById('footerContainer').innerHTML = `
+      <span>${footer.copyright || ''}</span>
+      <a href="admin.html" class="admin-link">Admin</a>
+    `;
+    if (footer.email) {
+      document.getElementById('emailMeBtn').href = `mailto:${footer.email}`;
+    }
+    if (footer.phone) {
+      const digits = footer.phone.replace(/[^0-9]/g, '');
+      document.getElementById('whatsappBtn').href = `https://wa.me/${digits}`;
+    }
+  }
+
   fetch('data.json')
     .then(res => res.json())
     .then(data => {
+      if (data.profile) renderProfile(data.profile);
+      if (data.hero) renderHero(data.hero);
+      renderLogos(data.logos);
+      if (data.footer) renderFooter(data.footer);
+
       socialBrands = data.socialBrands || [];
       identityBrands = data.identityBrands || [];
       editorialBrands = data.editorialBrands || [];

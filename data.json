@@ -1,4 +1,34 @@
 {
+  "profile": {
+    "name": "Samuel Adedeji",
+    "role": "Brand & Visual Identity Designer",
+    "avatar": "images/placeholder/avatar.jpg",
+    "bioQuote": "I've developed a deep appreciation for the role culture plays in shaping aesthetics and functionality.",
+    "bioParagraphs": [
+      "My name is Samuel \"Utidex\" Adedeji, a freelance designer with over five years of experience in brand identity, strategy, visual design, and print media. I create design solutions that balance visual appeal with functional impact across diverse projects.",
+      "I'm deeply inspired by how culture shapes design, and I believe the most effective work is human centered, purposeful, and rooted in empathy and context. I'm motivated to contribute in environments that value creative problem solving, growth, and meaningful outcomes. Based in Lagos, Nigeria, I work primarily remotely with occasional hybrid collaboration.",
+      "Outside design, I enjoy sci-fi films, good music, exploring AI automation, and on a lighter note, fried plantain with chocolate."
+    ],
+    "socials": {
+      "instagram": "",
+      "linkedin": "",
+      "behance": ""
+    }
+  },
+  "hero": {
+    "title": "Design What's Next.",
+    "subtitle": "Creating meaningful experiences, intelligent systems and growth opportunities for people and brands."
+  },
+  "logos": [
+    "", "", "", "", ""
+  ],
+  "footer": {
+    "location": "Lagos, Nigeria",
+    "phone": "+234 806 592 5091",
+    "email": "samuel.s.adedeji@gmail.com",
+    "copyright": "© 2026 Samuel Adedeji. All rights reserved."
+  },
+  "enquiryProcess": "My process — details coming soon.",
   "socialBrands": [
     { "name": "Brand One",   "images": ["images/placeholder/afkit-ad.jpg", "images/placeholder/afkit-ad.jpg", "", ""] },
     { "name": "Brand Two",   "images": ["", "", "", ""] },
