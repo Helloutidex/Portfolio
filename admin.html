@@ -438,6 +438,10 @@
   }
 
   async function pushDataJson(message) {
+    if (dataSha === null) {
+      const existing = await ghGetFile('data.json');
+      if (existing) dataSha = existing.sha;
+    }
     const updatedJson = JSON.stringify(siteData, null, 2);
     const base64Json = btoa(unescape(encodeURIComponent(updatedJson)));
     const result = await ghPutFile('data.json', base64Json, message, dataSha);

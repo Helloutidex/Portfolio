@@ -202,10 +202,12 @@
 
   function renderHero(hero) {
     document.getElementById('heroContainer').innerHTML = `
-      <h2 class="hero-title">${hero.title || ''}</h2>
+      <h2 class="hero-title" id="heroTitleEl">${hero.title || ''}</h2>
       <p class="hero-sub">${hero.subtitle || ''}</p>
       <button class="cta-btn" onclick="document.getElementById('work').scrollIntoView({behavior:'smooth'})">Recent Work →</button>
     `;
+    typeHeroTitle(document.getElementById('heroTitleEl'));
+    attachMagneticToAll();
   }
 
   function renderLogos(logos) {
@@ -245,12 +247,15 @@
       renderSocial();
       renderIdentity();
       renderEditorial();
+      attachTiltToAll();
+      attachMagneticToAll();
     })
     .catch(() => {
       socialBrands = [{ name: "Add a brand in the admin panel", images: ["", "", "", ""] }];
       identityBrands = [];
       editorialBrands = [];
       renderSocial();
+      attachTiltToAll();
     });
 
   let currentEditorialBrand = null;
@@ -515,7 +520,94 @@
       setTimeout(() => { btn.textContent = original; }, 1500);
     });
   }
+
+  /* ---------- FUN INTERACTIONS ---------- */
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const hasFinePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  const funEnabled = !prefersReducedMotion && hasFinePointer;
+
+  // 1. Cursor-follow glow
+  if (funEnabled) {
+    const glow = document.createElement('div');
+    glow.className = 'cursor-glow';
+    document.body.appendChild(glow);
+    let glowX = 0, glowY = 0, targetX = 0, targetY = 0;
+    document.addEventListener('mousemove', (e) => {
+      targetX = e.clientX;
+      targetY = e.clientY;
+      glow.classList.add('active');
+    });
+    document.addEventListener('mouseleave', () => glow.classList.remove('active'));
+    function animateGlow() {
+      glowX += (targetX - glowX) * 0.15;
+      glowY += (targetY - glowY) * 0.15;
+      glow.style.transform = `translate(${glowX}px, ${glowY}px)`;
+      requestAnimationFrame(animateGlow);
+    }
+    animateGlow();
+  }
+
+  // 2. Magnetic buttons
+  function makeMagnetic(el) {
+    if (!funEnabled || !el) return;
+    el.addEventListener('mousemove', (e) => {
+      const rect = el.getBoundingClientRect();
+      const x = e.clientX - rect.left - rect.width / 2;
+      const y = e.clientY - rect.top - rect.height / 2;
+      el.style.transform = `translate(${x * 0.25}px, ${y * 0.3}px)`;
+    });
+    el.addEventListener('mouseleave', () => { el.style.transform = 'translate(0,0)'; });
+  }
+  function attachMagneticToAll() {
+    document.querySelectorAll('.cta-btn, .btn-secondary').forEach(makeMagnetic);
+  }
+
+  // 3. Typing animation on the hero headline
+  function typeHeroTitle(el) {
+    if (!el) return;
+    const fullText = el.textContent;
+    if (!funEnabled) return; // show full text instantly, skip animation
+    el.textContent = '';
+    const cursor = document.createElement('span');
+    cursor.className = 'typing-cursor';
+    let i = 0;
+    function typeNext() {
+      if (i <= fullText.length) {
+        el.textContent = fullText.slice(0, i);
+        el.appendChild(cursor);
+        i++;
+        setTimeout(typeNext, 35);
+      } else {
+        cursor.remove();
+      }
+    }
+    typeNext();
+  }
+
+  // 4. 3D tilt on hover for work thumbnails
+  function makeTilt(el) {
+    if (!funEnabled) return;
+    el.addEventListener('mousemove', (e) => {
+      const rect = el.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / rect.width - 0.5;
+      const y = (e.clientY - rect.top) / rect.height - 0.5;
+      const img = el.querySelector('img, video');
+      if (img) img.style.transform = `scale(1.04) rotateX(${y * -8}deg) rotateY(${x * 8}deg)`;
+    });
+    el.addEventListener('mouseleave', () => {
+      const img = el.querySelector('img, video');
+      if (img) img.style.transform = '';
+    });
+  }
+  function attachTiltToAll() {
+    document.querySelectorAll('.smc-thumb, .identity-cover').forEach(makeTilt);
+  }
+
 </script>
+
+<div class="sa-badge" onclick="document.getElementById('work').scrollIntoView({behavior:'smooth'})">
+  <img src="images/placeholder/sa-badge.jpg" alt="Samuel Adedeji">
+</div>
 
 </body>
 </html>

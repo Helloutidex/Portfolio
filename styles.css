@@ -67,6 +67,71 @@ button{font-family:inherit;}
   color:var(--text);
 }
 .enquiry-link:hover{background:var(--line);}
+
+/* FUN INTERACTIONS */
+.cursor-glow{
+  position:fixed;
+  top:0; left:0;
+  width:260px; height:260px;
+  margin:-130px 0 0 -130px;
+  border-radius:50%;
+  background:radial-gradient(circle, rgba(232,33,60,0.10) 0%, rgba(232,33,60,0) 70%);
+  pointer-events:none;
+  z-index:9999;
+  will-change:transform;
+  opacity:0;
+  transition:opacity 0.3s ease;
+}
+body.dark-mode .cursor-glow{background:radial-gradient(circle, rgba(232,33,60,0.16) 0%, rgba(232,33,60,0) 70%);}
+.cursor-glow.active{opacity:1;}
+
+.cta-btn, .btn-secondary{transition:transform 0.15s ease, opacity 0.15s ease;}
+
+.hero-title .typing-cursor{
+  display:inline-block;
+  width:2px;
+  background:var(--text);
+  margin-left:2px;
+  animation:blink 0.9s step-end infinite;
+}
+@keyframes blink{50%{opacity:0;}}
+
+.smc-thumb, .identity-cover{
+  transform-style:preserve-3d;
+  perspective:600px;
+  will-change:transform;
+}
+.smc-thumb img, .identity-cover img{transition:transform 0.1s ease;}
+
+@media (prefers-reduced-motion: reduce){
+  .cursor-glow{display:none;}
+  .cta-btn, .btn-secondary, .smc-thumb, .identity-cover{transition:none !important;}
+}
+
+/* ROTATING SA BADGE */
+.sa-badge{
+  position:fixed;
+  bottom:28px;
+  right:28px;
+  width:84px;
+  height:84px;
+  border-radius:50%;
+  overflow:hidden;
+  z-index:60;
+  box-shadow:0 6px 18px rgba(0,0,0,0.18);
+  cursor:pointer;
+  animation:sa-spin 14s linear infinite;
+  transition:transform 0.25s ease;
+}
+.sa-badge:hover{transform:scale(1.08);}
+.sa-badge img{width:100%; height:100%; object-fit:cover; display:block;}
+@keyframes sa-spin{ from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
+@media (prefers-reduced-motion: reduce){
+  .sa-badge{animation:none;}
+}
+@media (max-width:640px){
+  .sa-badge{width:60px; height:60px; bottom:18px; right:18px;}
+}
 .theme-toggle{
   border:1px solid var(--line);
   background:none;
@@ -203,9 +268,9 @@ button{font-family:inherit;}
   height:32px;
   background:none;
   border-radius:0;
-  opacity:0.85;
+  opacity:0.8;
   object-fit:contain;
-  filter:grayscale(40%);
+  filter:grayscale(100%);
 }
 @media (prefers-reduced-motion: reduce){
   .logos-track{animation:none;}
