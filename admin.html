@@ -70,6 +70,21 @@
   .logo-item span{font-size:11px; color:var(--muted);}
   .logo-item button{background:none; border:none; color:#B23A3A; font-size:11px; cursor:pointer; padding:0;}
   a{color:var(--muted);}
+  .password-wrap{position:relative;}
+  .password-wrap input{padding-right:40px;}
+  .eye-toggle{
+    position:absolute;
+    right:6px;
+    top:50%;
+    transform:translateY(-50%);
+    background:none;
+    border:none;
+    font-size:16px;
+    cursor:pointer;
+    padding:4px 8px;
+    opacity:0.6;
+  }
+  .eye-toggle:hover{opacity:1;}
   #toast{
     position:fixed;
     top:16px;
@@ -100,7 +115,10 @@
   <div id="gate">
     <h1>Admin</h1>
     <p class="sub">This screen is a light deterrent only — the real protection is your GitHub token, which never leaves your browser.</p>
-    <input type="password" id="gatePassword" placeholder="Passcode">
+    <div class="password-wrap">
+      <input type="password" id="gatePassword" placeholder="Passcode">
+      <button type="button" class="eye-toggle" onclick="togglePasswordVisibility('gatePassword', this)">👁</button>
+    </div>
     <button class="btn-primary" onclick="checkGate()">Enter</button>
     <div class="status err" id="gateError">Wrong passcode.</div>
   </div>
@@ -121,7 +139,10 @@
     <fieldset>
       <legend>Connection</legend>
       <label>GitHub personal access token (needs "repo" scope)</label>
-      <input type="password" id="ghToken" placeholder="ghp_...">
+      <div class="password-wrap">
+        <input type="password" id="ghToken" placeholder="ghp_...">
+        <button type="button" class="eye-toggle" onclick="togglePasswordVisibility('ghToken', this)">👁</button>
+      </div>
       <p style="font-size:12px; color:var(--muted); margin:6px 0 0;">"Bad credentials" usually means the token was copied with a missing character, has expired, or (for fine-grained tokens) wasn't given "Contents: Read and write" access to this repo. Classic tokens with the "repo" checkbox are the most reliable.</p>
       <div class="checkbox-row">
         <input type="checkbox" id="rememberToken">
@@ -257,6 +278,13 @@
 
 <script>
   const GATE_PASSCODE = "utidex2026"; // change this to whatever passcode you want
+
+  function togglePasswordVisibility(fieldId, btn) {
+    const field = document.getElementById(fieldId);
+    const isHidden = field.type === 'password';
+    field.type = isHidden ? 'text' : 'password';
+    btn.textContent = isHidden ? '🙈' : '👁';
+  }
 
   function checkGate() {
     const val = document.getElementById('gatePassword').value;
@@ -652,6 +680,8 @@
           <button class="btn-danger" style="margin-top:10px;" onclick="deleteBrand('${c.key}')">Delete this brand</button>
         </div>
 
+        <div id="existingFiles-${c.key}" style="margin-top:10px;"></div>
+
         <label>Header (a short title shown above the description)</label>
         <input type="text" id="header-${c.key}" placeholder="e.g. About this project">
         <label>Description</label>
@@ -688,6 +718,7 @@
       document.getElementById(`newName-${cat}`).value = '';
       document.getElementById(`desc-${cat}`).value = '';
       document.getElementById(`header-${cat}`).value = '';
+      document.getElementById(`existingFiles-${cat}`).innerHTML = '';
       return;
     }
     const brand = siteData[cat] && siteData[cat][val];
@@ -695,6 +726,54 @@
     document.getElementById(`renameInput-${cat}`).value = brand.name;
     document.getElementById(`desc-${cat}`).value = brand.description || '';
     document.getElementById(`header-${cat}`).value = brand.header || '';
+    renderExistingFiles(cat);
+  }
+
+  function getBrandMediaArray(cat, brand) {
+    if (cat === 'socialBrands') return brand.images;
+    if (cat === 'identityBrands') return brand.files;
+    return brand.pages;
+  }
+
+  function renderExistingFiles(cat) {
+    const val = document.getElementById(`brand-${cat}`).value;
+    const wrap = document.getElementById(`existingFiles-${cat}`);
+    if (val === '__new__') { wrap.innerHTML = ''; return; }
+    const brand = siteData[cat] && siteData[cat][val];
+    if (!brand) { wrap.innerHTML = ''; return; }
+    const arr = getBrandMediaArray(cat, brand) || [];
+    if (!arr.length) {
+      wrap.innerHTML = '<p style="font-size:12px; color:var(--muted); margin:6px 0 0;">No files uploaded yet.</p>';
+      return;
+    }
+    wrap.innerHTML = '<label>Already uploaded — delete any mistakes here</label>' +
+      arr.map((item, i) => {
+        const isVideo = item && typeof item === 'object' && item.type === 'video';
+        const src = isVideo ? item.src : item;
+        const label = src ? src.split('/').pop() : '(empty placeholder)';
+        return `<div class="file-item">${label}${isVideo ? ' (video)' : ''}
+          <br><button class="remove" onclick="removeExistingFile('${cat}', ${i})">Delete</button></div>`;
+      }).join('');
+  }
+
+  async function removeExistingFile(cat, i) {
+    const val = document.getElementById(`brand-${cat}`).value;
+    if (val === '__new__') return;
+    const brand = siteData[cat][val];
+    const arr = getBrandMediaArray(cat, brand);
+    const removed = arr[i];
+    arr.splice(i, 1);
+    if (cat === 'identityBrands' && brand.cover && removed === brand.cover) {
+      const nextImg = arr.find(x => typeof x === 'string' && x);
+      brand.cover = nextImg || '';
+    }
+    try {
+      await pushDataJson(`Remove a file from ${brand.name}`);
+      renderExistingFiles(cat);
+      showStatus('publishStatus', 'File removed from the site.', true);
+    } catch (e) {
+      showStatus('publishStatus', e.message || 'Something went wrong.', false);
+    }
   }
 
   async function renameBrand(cat) {

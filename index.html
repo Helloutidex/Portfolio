@@ -314,15 +314,12 @@
     const pages = currentEditorialBrand.pages;
     const top = document.getElementById('flipTop');
     const bottom = document.getElementById('flipBottom');
-    top.style.transition = 'none';
-    top.style.transformOrigin = 'left center';
+    top.classList.remove('flip-next-anim', 'flip-prev-anim');
     top.style.transform = 'rotateY(0deg)';
     top.querySelector('.flip-media').innerHTML = mediaTag(pages[0], currentEditorialBrand.name);
     bottom.querySelector('.flip-media').innerHTML = pages[1] !== undefined
       ? mediaTag(pages[1], currentEditorialBrand.name)
       : `<div class="media-placeholder">End of pages</div>`;
-    void top.offsetWidth;
-    top.style.transition = '';
     document.getElementById('flipCounter').textContent = `1 / ${pages.length}`;
   }
 
@@ -337,8 +334,7 @@
     const bottom = document.getElementById('flipBottom');
     const left = document.getElementById('bookLeft');
 
-    top.style.transition = 'none';
-    top.style.transformOrigin = 'left center';
+    top.classList.remove('flip-next-anim', 'flip-prev-anim');
     top.style.transform = 'rotateY(0deg)';
     top.querySelector('.flip-media').innerHTML = pages[rightIndex()] !== undefined
       ? mediaTag(pages[rightIndex()], currentEditorialBrand.name)
@@ -346,8 +342,6 @@
     bottom.querySelector('.flip-media').innerHTML = pages[rightIndex() + step()] !== undefined
       ? mediaTag(pages[rightIndex() + step()], currentEditorialBrand.name)
       : `<div class="media-placeholder">End of pages</div>`;
-    void top.offsetWidth;
-    top.style.transition = '';
 
     if (isDesktopSpread()) {
       left.querySelector('.flip-media').innerHTML = mediaTag(pages[leftIndex()], currentEditorialBrand.name);
@@ -385,6 +379,21 @@
     } catch (e) { /* audio not available — fail silently */ }
   }
 
+  function runFlipAnimation(top, animClass, onDone) {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      onDone();
+      return;
+    }
+    top.classList.remove('flip-next-anim', 'flip-prev-anim');
+    void top.offsetWidth; // restart animation if same class was just used
+    top.classList.add(animClass);
+    top.addEventListener('animationend', function handler() {
+      top.removeEventListener('animationend', handler);
+      top.classList.remove(animClass);
+      onDone();
+    }, { once: true });
+  }
+
   function flipNext() {
     const pages = currentEditorialBrand.pages;
     const top = document.getElementById('flipTop');
@@ -404,24 +413,19 @@
       if (isDesktopSpread()) {
         left.querySelector('.flip-media').innerHTML = mediaTag(pages[1], currentEditorialBrand.name);
       }
-      top.style.transformOrigin = 'left center';
-      top.style.transform = 'rotateY(-180deg)';
-      setTimeout(() => {
+      runFlipAnimation(top, 'flip-next-anim', () => {
         spreadIndex = 0;
         setupSpread();
-      }, 600);
+      });
       return;
     }
 
-    if (rightIndex() >= pages.length - 1 && pages[rightIndex()] !== undefined && pages[rightIndex() + step()] === undefined) return;
     if (pages[rightIndex() + step()] === undefined && pages[rightIndex()] === undefined) return;
     playFlipSound();
-    top.style.transformOrigin = 'left center';
-    top.style.transform = 'rotateY(-180deg)';
-    setTimeout(() => {
+    runFlipAnimation(top, 'flip-next-anim', () => {
       spreadIndex++;
       setupSpread();
-    }, 600);
+    });
   }
 
   function flipPrev() {
@@ -434,38 +438,28 @@
     if (spreadIndex === 0) {
       // Close the book back to the cover
       playFlipSound();
-      covered = true;
-      document.getElementById('flipbookViewer').classList.add('covered');
       bottom.querySelector('.flip-media').innerHTML = mediaTag(pages[rightIndex()], currentEditorialBrand.name);
-      top.style.transition = 'none';
-      top.style.transformOrigin = 'left center';
       top.style.transform = 'rotateY(-180deg)';
       top.querySelector('.flip-media').innerHTML = mediaTag(pages[0], currentEditorialBrand.name);
-      void top.offsetWidth;
-      top.style.transition = '';
-      requestAnimationFrame(() => { top.style.transform = 'rotateY(0deg)'; });
-      setTimeout(() => {
+      runFlipAnimation(top, 'flip-prev-anim', () => {
+        covered = true;
+        document.getElementById('flipbookViewer').classList.add('covered');
         document.getElementById('flipCounter').textContent = `1 / ${pages.length}`;
-      }, 600);
+      });
       return;
     }
 
     playFlipSound();
     bottom.querySelector('.flip-media').innerHTML = mediaTag(pages[rightIndex()], currentEditorialBrand.name);
-    top.style.transition = 'none';
-    top.style.transformOrigin = 'left center';
     top.style.transform = 'rotateY(-180deg)';
     top.querySelector('.flip-media').innerHTML = mediaTag(pages[rightIndex() - step()], currentEditorialBrand.name);
-    void top.offsetWidth;
-    top.style.transition = '';
     if (isDesktopSpread()) {
       left.querySelector('.flip-media').innerHTML = mediaTag(pages[leftIndex() - step()], currentEditorialBrand.name);
     }
-    requestAnimationFrame(() => { top.style.transform = 'rotateY(0deg)'; });
-    setTimeout(() => {
+    runFlipAnimation(top, 'flip-prev-anim', () => {
       spreadIndex--;
       updateFlipCounter();
-    }, 600);
+    });
   }
 
   window.addEventListener('resize', () => {
