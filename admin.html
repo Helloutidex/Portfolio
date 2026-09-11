@@ -156,6 +156,8 @@
       <textarea id="profileBioParagraphs" rows="8"></textarea>
       <label>Profile photo (auto-converts to grayscale on the site)</label>
       <input type="file" id="avatarFile" accept="image/*">
+      <label>Rotating badge / logo mark (optional — square image works best; overrides the default "SA." badge)</label>
+      <input type="file" id="badgeFile" accept="image/*">
       <div class="row" style="margin-top:14px;">
         <div>
           <label>Instagram URL</label>
@@ -245,49 +247,8 @@
 
     <!-- BRANDS / WORK -->
     <h2 class="section-title">Recent Work</h2>
-    <fieldset>
-      <label>Category</label>
-      <select id="category" onchange="onCategoryChange()">
-        <option value="socialBrands">Social Media Creatives</option>
-        <option value="identityBrands">Brand Identity</option>
-        <option value="editorialBrands">Editorial</option>
-      </select>
+    <div id="workBoxes"></div>
 
-      <label>Brand / project name</label>
-      <select id="existingBrand" onchange="onBrandChange()">
-        <option value="__new__">+ Add a new brand</option>
-      </select>
-
-      <div id="newBrandNameWrap" style="display:none;">
-        <label>New brand name</label>
-        <input type="text" id="newBrandName" placeholder="e.g. Brandqor">
-      </div>
-
-      <div id="renameWrap" style="margin-top:10px; display:none;">
-        <label>Rename this brand</label>
-        <div class="row">
-          <input type="text" id="renameBrandInput" placeholder="New name for this brand">
-          <button class="btn-secondary" style="flex:0 0 auto;" onclick="renameBrand()">Rename</button>
-        </div>
-        <button class="btn-danger" style="margin-top:10px;" onclick="deleteBrand()">Delete this brand</button>
-      </div>
-
-      <div id="descriptionWrap">
-        <label>Header (a short title shown above the description)</label>
-        <input type="text" id="brandHeader" placeholder="e.g. About this project">
-        <label>Description</label>
-        <textarea id="brandDescription" rows="3" placeholder="Add project description here."></textarea>
-      </div>
-    </fieldset>
-
-    <fieldset>
-      <legend>Add Files to Selected Brand</legend>
-      <label>Add images (or videos, for Brand Identity). PDFs are auto-split into pages for Editorial.</label>
-      <input type="file" id="fileInput" multiple accept="image/*,video/*,application/pdf" onchange="onFilesSelected()">
-      <div id="fileList"></div>
-    </fieldset>
-
-    <button class="btn-primary" id="publishBtn" onclick="publish()">Publish files to site</button>
     <button class="btn-secondary" onclick="logout()">Log out</button>
     <div class="status" id="publishStatus"></div>
   </div>
@@ -304,6 +265,7 @@
       document.getElementById('panel').style.display = 'block';
       loadSavedToken();
       loadDarkModePref();
+      renderWorkBoxes();
       loadData();
     } else {
       document.getElementById('gateError').classList.add('show');
@@ -428,7 +390,7 @@
     } catch (e) {
       showStatus('loadStatus', 'Could not connect — check your token.', false);
     }
-    onCategoryChange();
+    refreshAllBrandDropdowns();
   }
 
   function populateFormsFromData() {
@@ -519,10 +481,18 @@
         avatarPath = `images/placeholder/avatar-${Date.now()}-${file.name}`;
         await ghPutFile(avatarPath, base64, 'Update profile photo');
       }
+      let badgePath = siteData.profile.badge || '';
+      const badgeFile = document.getElementById('badgeFile').files[0];
+      if (badgeFile) {
+        const base64 = await fileToBase64(badgeFile);
+        badgePath = `images/placeholder/badge-${Date.now()}-${badgeFile.name}`;
+        await ghPutFile(badgePath, base64, 'Update rotating badge');
+      }
       siteData.profile = {
         name: document.getElementById('profileName').value,
         role: document.getElementById('profileRole').value,
         avatar: avatarPath,
+        badge: badgePath,
         bioQuote: document.getElementById('profileBioQuote').value,
         bioParagraphs: document.getElementById('profileBioParagraphs').value.split(/\n\s*\n/).map(s => s.trim()).filter(Boolean),
         socials: {
@@ -646,79 +616,128 @@
   }
 
   // ---------- BRANDS ----------
-  function onCategoryChange() {
-    const cat = document.getElementById('category').value;
+  const CATS = [
+    { key: 'socialBrands', label: 'Social Media Creatives', accept: 'image/*' },
+    { key: 'identityBrands', label: 'Brand Identity', accept: 'image/*,video/*' },
+    { key: 'editorialBrands', label: 'Editorial', accept: 'image/*,application/pdf' },
+  ];
+  const selectedFilesByCat = { socialBrands: [], identityBrands: [], editorialBrands: [] };
+
+  function categorySlugFor(cat) {
+    return cat === 'socialBrands' ? 'social' : cat === 'identityBrands' ? 'identity' : 'editorial';
+  }
+
+  function renderWorkBoxes() {
+    const container = document.getElementById('workBoxes');
+    container.innerHTML = CATS.map(c => `
+      <fieldset id="fs-${c.key}">
+        <legend>${c.label}</legend>
+
+        <label>Brand / project name</label>
+        <select id="brand-${c.key}" onchange="onBrandChange('${c.key}')">
+          <option value="__new__">+ Add a new brand</option>
+        </select>
+
+        <div id="newNameWrap-${c.key}" style="display:none;">
+          <label>New brand name</label>
+          <input type="text" id="newName-${c.key}" placeholder="e.g. Brandqor">
+        </div>
+
+        <div id="renameWrap-${c.key}" style="margin-top:10px; display:none;">
+          <label>Rename this brand</label>
+          <div class="row">
+            <input type="text" id="renameInput-${c.key}" placeholder="New name">
+            <button class="btn-secondary" style="flex:0 0 auto;" onclick="renameBrand('${c.key}')">Rename</button>
+          </div>
+          <button class="btn-danger" style="margin-top:10px;" onclick="deleteBrand('${c.key}')">Delete this brand</button>
+        </div>
+
+        <label>Header (a short title shown above the description)</label>
+        <input type="text" id="header-${c.key}" placeholder="e.g. About this project">
+        <label>Description</label>
+        <textarea id="desc-${c.key}" rows="3" placeholder="Add project description here."></textarea>
+
+        <label style="margin-top:14px;">Add files${c.key === 'editorialBrands' ? ' (PDFs auto-split into pages)' : c.key === 'identityBrands' ? ' (images or videos)' : ''}</label>
+        <input type="file" id="files-${c.key}" multiple accept="${c.accept}" onchange="onFilesSelected('${c.key}')">
+        <div id="fileList-${c.key}"></div>
+
+        <button class="btn-primary" id="publishBtn-${c.key}" style="margin-top:14px;" onclick="publish('${c.key}')">Publish to ${c.label}</button>
+      </fieldset>
+    `).join('');
+  }
+
+  function refreshBrandDropdown(cat) {
     const list = siteData[cat] || [];
-    const select = document.getElementById('existingBrand');
+    const select = document.getElementById(`brand-${cat}`);
+    if (!select) return;
     select.innerHTML = `<option value="__new__">+ Add a new brand</option>` +
       list.map((b, i) => `<option value="${i}">${b.name}</option>`).join('');
-    onBrandChange();
+    onBrandChange(cat);
+  }
+  function refreshAllBrandDropdowns() {
+    CATS.forEach(c => refreshBrandDropdown(c.key));
   }
 
-  function onBrandChange() {
-    const val = document.getElementById('existingBrand').value;
+  function onBrandChange(cat) {
+    const val = document.getElementById(`brand-${cat}`).value;
     const isNew = val === '__new__';
-    document.getElementById('newBrandNameWrap').style.display = isNew ? 'block' : 'none';
-    document.getElementById('renameWrap').style.display = isNew ? 'none' : 'block';
+    document.getElementById(`newNameWrap-${cat}`).style.display = isNew ? 'block' : 'none';
+    document.getElementById(`renameWrap-${cat}`).style.display = isNew ? 'none' : 'block';
 
     if (isNew) {
-      document.getElementById('newBrandName').value = '';
-      document.getElementById('brandDescription').value = '';
-      document.getElementById('brandHeader').value = '';
+      document.getElementById(`newName-${cat}`).value = '';
+      document.getElementById(`desc-${cat}`).value = '';
+      document.getElementById(`header-${cat}`).value = '';
       return;
     }
-    const cat = document.getElementById('category').value;
     const brand = siteData[cat] && siteData[cat][val];
     if (!brand) return;
-    document.getElementById('renameBrandInput').value = brand.name;
-    document.getElementById('brandDescription').value = brand.description || '';
-    document.getElementById('brandHeader').value = brand.header || '';
+    document.getElementById(`renameInput-${cat}`).value = brand.name;
+    document.getElementById(`desc-${cat}`).value = brand.description || '';
+    document.getElementById(`header-${cat}`).value = brand.header || '';
   }
 
-  async function renameBrand() {
-    const cat = document.getElementById('category').value;
-    const idx = document.getElementById('existingBrand').value;
-    const newName = document.getElementById('renameBrandInput').value.trim();
+  async function renameBrand(cat) {
+    const idx = document.getElementById(`brand-${cat}`).value;
+    const newName = document.getElementById(`renameInput-${cat}`).value.trim();
     if (idx === '__new__' || !siteData[cat] || !siteData[cat][idx] || !newName) return;
     try {
       siteData[cat][idx].name = newName;
       await pushDataJson(`Rename brand to ${newName}`);
-      onCategoryChange();
+      refreshBrandDropdown(cat);
       showStatus('publishStatus', `Renamed to "${newName}".`, true);
     } catch (e) {
       showStatus('publishStatus', e.message || 'Something went wrong.', false);
     }
   }
 
-  async function deleteBrand() {
-    const cat = document.getElementById('category').value;
-    const idx = document.getElementById('existingBrand').value;
+  async function deleteBrand(cat) {
+    const idx = document.getElementById(`brand-${cat}`).value;
     const brand = idx !== '__new__' && siteData[cat] && siteData[cat][idx];
     if (!brand) return;
     if (!confirm(`Delete "${brand.name}"? This can't be undone.`)) return;
     try {
       siteData[cat].splice(idx, 1);
       await pushDataJson(`Delete brand ${brand.name}`);
-      onCategoryChange();
+      refreshBrandDropdown(cat);
       showStatus('publishStatus', `Deleted "${brand.name}".`, true);
     } catch (e) {
       showStatus('publishStatus', e.message || 'Something went wrong.', false);
     }
   }
 
-  let selectedFiles = [];
-  async function onFilesSelected() {
-    const input = document.getElementById('fileInput');
+  async function onFilesSelected(cat) {
+    const input = document.getElementById(`files-${cat}`);
     const rawFiles = Array.from(input.files);
-    selectedFiles = [];
-    renderFileList(); // clear while processing
+    selectedFilesByCat[cat] = [];
+    renderFileList(cat);
     for (const f of rawFiles) {
       if (f.type === 'application/pdf') {
         showStatus('publishStatus', `Converting ${f.name} to page images…`, true);
         try {
           const pages = await pdfToImages(f);
           pages.forEach((dataUrl, i) => {
-            selectedFiles.push({
+            selectedFilesByCat[cat].push({
               dataUrl,
               filename: `${f.name.replace(/\.pdf$/i, '')}-page${i + 1}.png`,
               isVideo: false,
@@ -728,11 +747,11 @@
           showStatus('publishStatus', `Could not read ${f.name} as a PDF.`, false);
         }
       } else {
-        selectedFiles.push({ file: f, isVideo: f.type.startsWith('video/') });
+        selectedFilesByCat[cat].push({ file: f, isVideo: f.type.startsWith('video/') });
       }
     }
     document.getElementById('publishStatus').classList.remove('show');
-    renderFileList();
+    renderFileList(cat);
   }
   async function pdfToImages(file) {
     const arrayBuffer = await file.arrayBuffer();
@@ -749,43 +768,43 @@
     }
     return images;
   }
-  function renderFileList() {
-    const wrap = document.getElementById('fileList');
+  function renderFileList(cat) {
+    const wrap = document.getElementById(`fileList-${cat}`);
     wrap.innerHTML = '';
-    selectedFiles.forEach((item, i) => {
+    selectedFilesByCat[cat].forEach((item, i) => {
       const name = item.file ? item.file.name : item.filename;
       const div = document.createElement('div');
       div.className = 'file-item';
       div.innerHTML = `${name} ${item.isVideo ? '(video)' : ''}
-        <br><button class="remove" onclick="removeFile(${i})">Remove</button>`;
+        <br><button class="remove" onclick="removeFile('${cat}', ${i})">Remove</button>`;
       wrap.appendChild(div);
     });
   }
-  function removeFile(i) {
-    selectedFiles.splice(i, 1);
-    renderFileList();
+  function removeFile(cat, i) {
+    selectedFilesByCat[cat].splice(i, 1);
+    renderFileList(cat);
   }
 
-  async function publish() {
-    const btn = document.getElementById('publishBtn');
+  async function publish(cat) {
+    const btn = document.getElementById(`publishBtn-${cat}`);
     btn.disabled = true;
     btn.textContent = 'Publishing…';
 
     try {
-      const cat = document.getElementById('category').value;
-      const selectedVal = document.getElementById('existingBrand').value;
+      const selectedVal = document.getElementById(`brand-${cat}`).value;
       const isNew = selectedVal === '__new__';
       const brandName = isNew
-        ? document.getElementById('newBrandName').value.trim()
+        ? document.getElementById(`newName-${cat}`).value.trim()
         : (siteData[cat][selectedVal] || {}).name;
 
       if (!brandName) throw new Error('Enter a name for the new brand, or pick an existing one.');
       const slug = slugify(brandName);
-      const categorySlug = cat === 'socialBrands' ? 'social' : cat === 'identityBrands' ? 'identity' : 'editorial';
+      const categorySlug = categorySlugFor(cat);
+      const files = selectedFilesByCat[cat];
 
       const uploadedPaths = [];
       let fileIndex = 0;
-      for (const item of selectedFiles) {
+      for (const item of files) {
         const base64 = item.dataUrl ? item.dataUrl.split(',')[1] : await fileToBase64(item.file);
         const filename = item.dataUrl ? item.filename : item.file.name;
         const path = `images/${categorySlug}/${slug}/${Date.now()}-${fileIndex}-${filename}`;
@@ -794,8 +813,8 @@
         fileIndex++;
       }
 
-      const headerVal = document.getElementById('brandHeader').value || '';
-      const descVal = document.getElementById('brandDescription').value || '';
+      const headerVal = document.getElementById(`header-${cat}`).value || '';
+      const descVal = document.getElementById(`desc-${cat}`).value || '';
 
       let brand;
       if (isNew) {
@@ -824,15 +843,15 @@
       await pushDataJson(`Update ${brandName}`);
 
       showStatus('publishStatus', `Published ${uploadedPaths.length} file(s) for "${brandName}". Site updates in about a minute.`, true);
-      selectedFiles = [];
-      document.getElementById('fileInput').value = '';
-      renderFileList();
-      onCategoryChange();
+      selectedFilesByCat[cat] = [];
+      document.getElementById(`files-${cat}`).value = '';
+      renderFileList(cat);
+      refreshBrandDropdown(cat);
     } catch (e) {
       showStatus('publishStatus', e.message || 'Something went wrong.', false);
     } finally {
       btn.disabled = false;
-      btn.textContent = 'Publish files to site';
+      btn.textContent = `Publish to ${CATS.find(c => c.key === cat).label}`;
     }
   }
 </script>
