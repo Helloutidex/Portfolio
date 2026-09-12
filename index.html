@@ -265,12 +265,21 @@
       if (data.profile) renderProfile(data.profile);
       renderBadge(data.profile);
       if (data.hero) renderHero(data.hero);
-      renderLogos(data.logos);
+      renderLogos((data.logos || []).filter(Boolean));
       if (data.footer) renderFooter(data.footer);
 
       socialBrands = data.socialBrands || [];
       identityBrands = data.identityBrands || [];
       editorialBrands = data.editorialBrands || [];
+
+      // Strip any empty placeholder slots left over from earlier drafts —
+      // new uploads get appended, so old blanks would otherwise still show.
+      socialBrands.forEach(b => { b.images = (b.images || []).filter(Boolean); });
+      identityBrands.forEach(b => {
+        b.files = (b.files || []).filter(f => f && (typeof f === 'object' ? f.src : f));
+      });
+      editorialBrands.forEach(b => { b.pages = (b.pages || []).filter(Boolean); });
+
       renderSocial();
       renderIdentity();
       renderEditorial();
